@@ -7,9 +7,18 @@ export default function AdminLayout({ children }) {
     const { loading } = useAuth();
 
     if (loading) {
+        console.log('loading:', loading);
+
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-xl">Loading...</div>
+                <div className="spinner">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
             </div>
         );
     }

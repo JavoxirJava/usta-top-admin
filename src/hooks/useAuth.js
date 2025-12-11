@@ -1,3 +1,4 @@
+    'use client'
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -16,5 +17,10 @@ export default function useAuth() {
         setLoading(false);
     }, [router]);
 
-    return { isAuthenticated, loading };
+    const logout = () => {
+        localStorage.clear('authToken')
+        router.push('/login')
+    }
+
+    return { isAuthenticated, loading, logout };
 }

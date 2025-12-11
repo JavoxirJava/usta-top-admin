@@ -1,6 +1,10 @@
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
+import { AnimatePresence } from 'framer-motion'
+import NavigationWrapper from "@/components/NavWrapper";
+import useAuth from "@/hooks/useAuth";
+import AuthWrapper from "@/components/AuthWrapper";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -17,9 +21,20 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+
   return (
     <html lang="en">
-      <body>{children}</body>
+      <AnimatePresence mode="wait">
+        <body>
+          <NavigationWrapper />
+          <main>
+            {/* <AuthWrapper> */}
+              {children}
+            {/* </AuthWrapper> */}
+          </main>
+        </body>
+
+      </AnimatePresence>
     </html>
   );
 }

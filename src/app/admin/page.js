@@ -1,6 +1,13 @@
 'use client';
 
+import { checkLogin } from "@/hooks/useCheckRole";
+import apiClient from "@/lib/apiClient";
+import { useEffect } from "react";
+
 export default function AdminDashboard() {
+    useEffect(() =>{
+        checkLogin()
+    },[])
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6">Dashboard</h1>

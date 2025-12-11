@@ -114,8 +114,9 @@ export default function EditUserPage() {
                     value={formData.role}
                     onChange={handleChange}
                     options={[
-                        { value: 'user', label: 'User' },
-                        { value: 'admin', label: 'Admin' },
+                        { value: 'USER', label: 'User' },
+                        { value: 'ADMIN', label: 'Admin' },
+                        { value: 'MASTER', label: 'Master' },
                     ]}
                 />
                 <SelectField
