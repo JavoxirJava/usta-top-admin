@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion'
 import NavigationWrapper from "@/components/NavWrapper";
 import useAuth from "@/hooks/useAuth";
 import AuthWrapper from "@/components/AuthWrapper";
+import { Toaster } from "sonner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,7 +30,8 @@ export default function RootLayout({ children }) {
           <NavigationWrapper />
           <main>
             {/* <AuthWrapper> */}
-              {children}
+            {children}
+            <Toaster richColors position="top-right" />
             {/* </AuthWrapper> */}
           </main>
         </body>

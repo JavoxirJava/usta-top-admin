@@ -1,6 +1,6 @@
 "use client"; // <- Framer Motion va interaktiv elementlar uchun kerak
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/GlassCard';
 import { PageTransition } from '@/components/PageTransition';
@@ -16,6 +16,8 @@ import {
   Area,
 } from 'recharts';
 import { TrendingUp, Users, Briefcase, DollarSign } from 'lucide-react';
+import { dashboardApi } from '@/services/dashboardApi';
+import { toast } from 'sonner';
 
 const data = [
   { name: 'Mon', jobs: 4, income: 240 },
@@ -27,14 +29,52 @@ const data = [
   { name: 'Sun', jobs: 1, income: 100 },
 ];
 
-const STATS = [
-  { label: 'Total Income', value: '$2,845', icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
-  { label: 'Active Jobs', value: '12', icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-100' },
-  { label: 'Profile Views', value: '1,234', icon: Users, color: 'text-purple-600', bg: 'bg-purple-100' },
-  { label: 'Growth', value: '+24%', icon: TrendingUp, color: 'text-orange-600', bg: 'bg-orange-100' },
-];
+
 
 export default function DashboardPage() {
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({});
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [weeklyActive, setWeeklyActive] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    // localStorage yoki API orqali user olish
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      // Dashboard stats fetch qilish
+      const fetchDashboard = async () => {
+        try {
+          const res = await dashboardApi.getAll()
+          setStats(res.data?.stats);
+          setWeeklyData(res.data?.weeklyData);
+          setWeeklyActive(res.data?.weeklyActive);
+        } catch (err) {
+          toast.error("Error: " + err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchDashboard();
+    }
+  }, [user]);
+
+  if (!user || loading) return <div>Loading...</div>;
+  const STATS = user.role === "MASTER" ? [
+    { label: 'Total Clients', value: stats?.totalClients, icon: Users, color: 'text-green-600', bg: 'bg-green-100' },
+    { label: 'Active Jobs', value: stats?.activeJobs, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-100' },
+  ] : [
+    { label: 'Total Masters', value: stats?.totalMasters, icon: Users, color: 'text-green-600', bg: 'bg-green-100' },
+    { label: 'Active Workers', value: stats?.activeWorkers, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-100' },
+  ];
+  const areaChartData = weeklyData; // weekly total clients (master) yoki total masters (user)
+  const barChartData = weeklyActive; // weekly active jobs (master) yoki active workers (user)
+
   return (
     <PageTransition className="min-h-screen pt-32 pb-20 px-6">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -54,7 +94,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
           {STATS.map((stat, i) => (
             <GlassCard key={i} className="p-6 flex items-center gap-4" hoverEffect>
               <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color}`}>
@@ -79,10 +119,10 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Weekly Income */}
           <GlassCard className="p-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-6">Weekly Income</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-6">{user.role === "MASTER" ? "Weekly Clients" : "Weekly Masters"}</h3>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
+                <AreaChart data={areaChartData}>
                   <defs>
                     <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#2F80ED" stopOpacity={0.3} />
@@ -100,7 +140,7 @@ export default function DashboardPage() {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     }}
                   />
-                  <Area type="monotone" dataKey="income" stroke="#2F80ED" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                  <Area type="monotone" dataKey={user.role === "MASTER" ? "clients" : "masters"}  stroke="#2F80ED" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -108,10 +148,10 @@ export default function DashboardPage() {
 
           {/* Job Requests */}
           <GlassCard className="p-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-6">Job Requests</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-6"> {user.role === "MASTER" ? "Job Requests" : "Active Workers"}</h3>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data}>
+                <BarChart data={barChartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280' }} />
@@ -124,7 +164,7 @@ export default function DashboardPage() {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     }}
                   />
-                  <Bar dataKey="jobs" fill="#8B5CF6" radius={[4, 4, 0, 0]} barSize={40} />
+                  <Bar dataKey={user.role === "MASTER" ? "jobs" : "workers"}  fill="#8B5CF6" radius={[4, 4, 0, 0]} barSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

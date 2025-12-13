@@ -1,19 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { GlassButton } from "@/components/GlassButton";
 import { PageTransition } from "@/components/PageTransition";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const formRef = useRef(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -22,6 +25,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
     setLoading(true);
     try {
       const response = await apiClient.post("/api/auth/login", formData);
@@ -30,7 +34,10 @@ export default function LoginPage() {
       localStorage.setItem("authToken", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      user.role === "ADMIN" ? router.push("/admin") : router.push("/");
+      if (response.data) {
+        user.role === "ADMIN" ? router.push("/admin") : router.push("/");
+      }
+      toast.success('Login has been successful')
     } catch (err) {
       setError(err.response?.data?.message || "Invalid credentials");
     } finally {
@@ -39,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <PageTransition className="min-h-screen flex items-center justify-center px-6 pt-20">
+    <PageTransition className="min-h-screen flex items-center justify-center px-6 ">
       {/* Background Blurs */}
       <div className="absolute inset-0 overflow-hidden -z-10">
         <motion.div
@@ -54,7 +61,14 @@ export default function LoginPage() {
         />
       </div>
 
-      <GlassCard className="w-full max-w-md p-8 md:p-12">
+      <GlassCard className="w-full max-w-md p-8 md:p-12 relative">
+        <button
+          onClick={() => router.push('/')}
+          className="absolute top-4 left-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-500">
@@ -68,7 +82,8 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form
+          className="space-y-6" onSubmit={handleSubmit}>
           {/* Email */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 ml-1">
@@ -93,19 +108,37 @@ export default function LoginPage() {
             <label className="text-sm font-medium text-gray-700 ml-1">
               Password
             </label>
+
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full pl-12 pr-4 py-3 bg-white/50 border border-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full pl-12 pr-12 py-3 bg-white/50 border border-white/40 rounded-xl 
+                 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
                 placeholder="••••••••"
               />
+
+              {/* Show / Hide button */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 
+                 text-gray-400 hover:text-gray-700 transition"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
           </div>
+
 
           {/* Remember & Forgot */}
           <div className="flex items-center justify-between text-sm">
@@ -116,12 +149,6 @@ export default function LoginPage() {
               />
               <span className="text-gray-600">Remember me</span>
             </label>
-            <button
-              type="button"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Forgot password?
-            </button>
           </div>
 
           {/* Submit */}

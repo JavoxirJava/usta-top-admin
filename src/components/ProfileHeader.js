@@ -1,11 +1,15 @@
 "use client"; // <- Framer Motion va interaktiv elementlar uchun kerak
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { GlassCard } from './GlassCard';
 import { motion } from 'framer-motion';
 import { MapPin, Link as LinkIcon, Twitter, Linkedin, Github, Star } from 'lucide-react';
+import apiClient from '@/lib/apiClient';
+import { toast } from 'sonner';
+import { regionsApi } from '@/services/regionsApi';
 
-export function ProfileHeader() {
+export function ProfileHeader({ regionName, userInfo }) {
+
     return (
         <div className="pt-32 pb-8 px-6">
             <GlassCard className="max-w-7xl mx-auto p-8 md:p-12 overflow-visible">
@@ -17,12 +21,18 @@ export function ProfileHeader() {
                         className="relative shrink-0"
                     >
                         <div className="absolute -inset-1 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur opacity-70" />
-                        <div className="relative w-[140px] h-[140px] rounded-full overflow-hidden border-4 border-white shadow-2xl">
-                            <img
-                                src="https://ausinet.edu.au/wp-content/uploads/elementor/thumbs/11-piw2phzs3y16ocm8maohsiq2ovyyj3og2ydg8ruvfa.png"
-                                alt="Profile"
-                                className="w-full h-full object-cover"
-                            />
+                        <div className="relative w-[140px] h-[140px] rounded-full overflow-hidden border-4 border-white shadow-2xl flex items-center justify-center bg-gray-200 text-gray-700 text-4xl font-bold">
+                            {userInfo.img ? (
+                                <img
+                                    src={userInfo.img} // yoki fallback rasm link
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span>
+                                    {userInfo.first_name ? userInfo.first_name.charAt(0).toUpperCase() : "U"}
+                                </span>
+                            )}
                         </div>
                         <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-white rounded-full shadow-lg" />
                     </motion.div>
@@ -35,7 +45,7 @@ export function ProfileHeader() {
                                 animate={{ y: 0, opacity: 1 }}
                                 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2"
                             >
-                                Ulugbek Raxmatillayev
+                                {`${userInfo?.first_name} ${userInfo?.last_name}`}
                             </motion.h1>
                             <motion.div
                                 initial={{ y: 20, opacity: 0 }}
@@ -43,7 +53,7 @@ export function ProfileHeader() {
                                 transition={{ delay: 0.1 }}
                                 className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm font-semibold"
                             >
-                                <Star size={14} fill="currentColor" /> Top Rated Electrician
+                                <Star size={14} fill="currentColor" /> Top Rated {userInfo?.work_type || 'Worker'}
                             </motion.div>
                         </div>
 
@@ -55,7 +65,7 @@ export function ProfileHeader() {
                         >
                             <div className="flex items-center gap-2">
                                 <MapPin className="w-4 h-4" />
-                                United Kingdom, London
+                                {regionName || 'No Address'}
                             </div>
                             <div className="flex items-center gap-2">
                                 <LinkIcon className="w-4 h-4" />

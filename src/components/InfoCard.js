@@ -4,27 +4,27 @@ import React from 'react';
 import { GlassCard } from './GlassCard';
 import { Mail, Phone, MapPin, Award } from 'lucide-react';
 
-export function InfoCards() {
+export function InfoCards({userInfo, region}) {
   const items = [
     {
       icon: Mail,
       label: 'Email',
-      value: 'ali@gmail.com',
+      value: userInfo?.email,
     },
     {
       icon: Phone,
       label: 'Phone',
-      value: '+998 (88) 002-0202',
+      value: userInfo?.phone_number,
     },
     {
       icon: MapPin,
       label: 'Location',
-      value: 'United Kingdom, London',
+      value: region?.name || 'Address not set',
     },
     {
       icon: Award,
       label: 'Experience',
-      value: '8 Years',
+      value: userInfo.experience === null ? 'No experience' : userInfo.experience,
     },
   ];
 

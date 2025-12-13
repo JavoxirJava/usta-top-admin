@@ -18,9 +18,10 @@ import {
 export function Navigation() {
     const [isOpen, setIsOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
+    const [user, setUser] = useState(null)
+    const [token, setToken] = useState(null)
     const pathname = usePathname()
     const router = useRouter()
-
     function handleRoute(path) {
         router.push(path)
     }
@@ -30,22 +31,38 @@ export function Navigation() {
         window.addEventListener('scroll', handleScroll)
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
-    
-    const [user, setUser] = useState(null)
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem("user")
-      if (storedUser) setUser(JSON.parse(storedUser))
-    }
-  }, [])
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const storedUser = localStorage.getItem('user')
+            const storedToken = localStorage.getItem('authToken')
+
+            if (storedUser) {
+                try {
+                    const parsedUser = JSON.parse(storedUser)
+                    setUser(parsedUser)
+                } catch (error) {
+                    console.error('User parse error:', error)
+                    localStorage.removeItem('user')
+                }
+            }
+
+            if (storedToken) setToken(storedToken)
+        }
+    }, [])
+
+
     const links = [
         { path: '/', label: 'Home', icon: Home },
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/profile', label: 'Profile', icon: User },
         { path: user?.role === 'MASTER' ? '/jobs' : "/find-workers", label: user?.role === "MASTER" ? 'Jobs' : "Workers", icon: Briefcase },
         { path: '/upload', label: 'Upload', icon: Upload },
-        { path: '/settings', label: 'Settings', icon: Settings },
+        ...(token && user.role !== "ADMIN"
+
+            ? [
+            { path: '/profile', label: 'Profile', icon: User }
+            ]
+            : []),
     ]
 
     return (
@@ -103,14 +120,16 @@ export function Navigation() {
                                 )
                             })}
 
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="ml-4 px-5 py-2 cursor-pointer bg-[#2F80ED] text-white rounded-xl font-medium shadow-lg shadow-blue-500/20"
-                                onClick={() => { handleRoute('/login') }}
-                            >
-                                Login
-                            </motion.button>
+                            {!token &&
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="ml-4 px-5 py-2 cursor-pointer bg-[#2F80ED] text-white rounded-xl font-medium shadow-lg shadow-blue-500/20"
+                                    onClick={() => { handleRoute('/login') }}
+                                >
+                                    Login
+                                </motion.button>
+                            }
                         </div>
 
                         {/* Mobile Toggle */}
@@ -131,7 +150,7 @@ export function Navigation() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="fixed inset-0 z-40 bg-white/90 backdrop-blur-xl pt-32 px-6 md:hidden"
+                        className="fixed inset-0 z-40 bg-white/90 backdrop-blur-xl pt-32 px-6 xl:hidden"
                     >
 
                         <div className="flex flex-col gap-4">
@@ -160,14 +179,14 @@ export function Navigation() {
                                 )
                             })}
 
-                            <button onClick={() => {
+                            {!token && <button onClick={() => {
                                 setIsOpen(false)
                                 handleRoute('/login')
                             }}>
                                 <button className="w-full p-4 bg-[#2F80ED] text-white rounded-2xl font-bold mt-4 shadow-xl">
                                     Login
                                 </button>
-                            </button>
+                            </button>}
                         </div>
                     </motion.div>
                 )}
