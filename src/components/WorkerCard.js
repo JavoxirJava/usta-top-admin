@@ -8,7 +8,21 @@ import { GlassButton } from './GlassButton'
 import { StarRating } from './StarRating'
 
 
-export default function WorkerCard({ worker,regionName, onClick }) {
+export default function WorkerCard({ worker, regionName, onClick }) {
+  const getAvatarGradient = (name = '') => {
+    const gradients = [
+      'from-pink-500 to-rose-500',
+      'from-blue-500 to-indigo-500',
+      'from-green-500 to-emerald-500',
+      'from-purple-500 to-fuchsia-500',
+      'from-orange-500 to-amber-500',
+      'from-cyan-500 to-sky-500',
+    ];
+
+    const charCode = name.charCodeAt(0) || 0;
+    return gradients[charCode % gradients.length];
+  };
+
   return (
     <GlassCard
       hoverEffect
@@ -19,13 +33,27 @@ export default function WorkerCard({ worker,regionName, onClick }) {
         {/* Header */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative">
-            <img
-              src={worker.avatar}
-              alt={worker.first_name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
-            />
+            {worker.avatar ? (
+              <img
+                src={worker.avatar}
+                alt={worker.first_name}
+                className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md"
+              />
+            ) : (
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center 
+      text-white font-bold text-xl uppercase shadow-md border-2 border-white
+      bg-gradient-to-br ${getAvatarGradient(worker.first_name)}`}
+              >
+                {worker.first_name?.charAt(0)}
+              </div>
+            )}
+
+            {/* Online indicator */}
             <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white" />
           </div>
+
+
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-gray-900 truncate">
               {worker.first_name}

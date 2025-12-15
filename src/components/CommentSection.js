@@ -5,41 +5,55 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { User, Mail, Send, Calendar } from 'lucide-react'
 import { GlassButton } from './GlassButton'
 import { StarRating } from './StarRating'
+import { commentsApi } from '@/services/commentsApi';
+import { toast } from 'sonner';
 
 
 export function CommentSection({
   comments,
   onAddComment,
 }) {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [rating, setRating] = useState(0)
-  const [text, setText] = useState('')
+  const [sendir_name, setSendir_name] = useState('')
+  const [sendir_email, setSendir_email] = useState('')
+  const [level, setLevel] = useState(0)
+  const [comment, setComment] = useState('')
   const [errors, setErrors] = useState({})
 
   const validate = () => {
     const newErrors = {}
-    if (!name.trim()) newErrors.name = 'Name is required'
-    if (!email.trim()) newErrors.email = 'Email is required'
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format'
-    if (rating === 0) newErrors.rating = 'Please select a rating'
-    if (!text.trim()) newErrors.text = 'Comment is required'
+    if (!sendir_name.trim()) newErrors.sendir_name = 'Name is required'
+    if (!sendir_email.trim()) newErrors.sendir_email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(sendir_email)) newErrors.sendir_email = 'Invalid email format'
+    if (level === 0) newErrors.level = 'Please select a rating'
+    if (!comment.trim()) newErrors.comment = 'Comment is required'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!validate()) return
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
 
-    onAddComment({ name, email, rating, text })
+    try {
+      const payload = {
+        comment: comment,
+        level: level,
+        portfolio_id: 1, // 🔴 MUHIM
+        sendir_name: sendir_name,
+        sendir_email: sendir_email
+      };
 
-    setName('')
-    setEmail('')
-    setRating(0)
-    setText('')
-    setErrors({})
-  }
+      const res = await commentsApi.create(payload);
+      setSendir_name('');
+      setSendir_email('');
+      setLevel(0);
+      setComment('');
+      onAddComment()
+      setErrors({});
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -54,13 +68,13 @@ export function CommentSection({
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={sendir_name}
+                  onChange={(e) => setSendir_name(e.target.value)}
                   placeholder="Your Name"
                   className={`w-full pl-10 pr-4 py-2.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${errors.name ? 'border-red-300 ring-2 ring-red-100' : 'border-white/60'}`}
                 />
               </div>
-              {errors.name && <p className="text-xs text-red-500 ml-1">{errors.name}</p>}
+              {errors.sendir_name && <p className="text-xs text-red-500 ml-1">{errors.sendir_name}</p>}
             </div>
 
             {/* Email */}
@@ -69,13 +83,13 @@ export function CommentSection({
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={sendir_email}
+                  onChange={(e) => setSendir_email(e.target.value)}
                   placeholder="Your Email"
                   className={`w-full pl-10 pr-4 py-2.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${errors.email ? 'border-red-300 ring-2 ring-red-100' : 'border-white/60'}`}
                 />
               </div>
-              {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email}</p>}
+              {errors.sendir_email && <p className="text-xs text-red-500 ml-1">{errors.sendir_email}</p>}
             </div>
           </div>
 
@@ -83,21 +97,21 @@ export function CommentSection({
           <div className="space-y-1">
             <div className="flex items-center gap-3 mb-2">
               <span className="text-sm font-medium text-gray-600">Rating:</span>
-              <StarRating rating={rating} onRatingChange={setRating} size={24} />
+              <StarRating rating={level} onRatingChange={setLevel} size={24} />
             </div>
-            {errors.rating && <p className="text-xs text-red-500 ml-1">{errors.rating}</p>}
+            {errors.level && <p className="text-xs text-red-500 ml-1">{errors.level}</p>}
           </div>
 
           {/* Comment */}
           <div className="space-y-1">
             <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
               placeholder="Share your experience..."
               rows={3}
               className={`w-full p-4 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none ${errors.text ? 'border-red-300 ring-2 ring-red-100' : 'border-white/60'}`}
             />
-            {errors.text && <p className="text-xs text-red-500 ml-1">{errors.text}</p>}
+            {errors.comment && <p className="text-xs text-red-500 ml-1">{errors.comment}</p>}
           </div>
 
           <div className="flex justify-end">
@@ -125,7 +139,7 @@ export function CommentSection({
                 No reviews yet. Be the first to share your experience!
               </motion.div>
             ) : (
-              comments.map((comment) => (
+              comments && comments.length > 0 && comments.map((comment) => (
                 <motion.div
                   key={comment.id}
                   layout
@@ -136,14 +150,14 @@ export function CommentSection({
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h4 className="font-bold text-gray-900">{comment.name}</h4>
+                      <h4 className="font-bold text-gray-900">{comment.sendir_name}</h4>
                       <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                        <Calendar size={12} /> {comment.date}
+                        <Calendar size={12} /> {comment.date || "12.12.2025"} 
                       </div>
                     </div>
-                    <StarRating rating={comment.rating} readOnly size={16} />
+                    <StarRating rating={comment.level.data} readOnly size={16} />
                   </div>
-                  <p className="text-gray-700 mt-2 leading-relaxed">{comment.text}</p>
+                  <p className="text-gray-700 mt-2 leading-relaxed">{comment.comment}</p>
                 </motion.div>
               ))
             )}

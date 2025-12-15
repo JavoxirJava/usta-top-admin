@@ -54,13 +54,23 @@ export function Navigation() {
 
     const links = [
         { path: '/', label: 'Home', icon: Home },
-        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { path: user?.role === 'MASTER' ? '/jobs' : "/find-workers", label: user?.role === "MASTER" ? 'Jobs' : "Workers", icon: Briefcase },
-        { path: '/upload', label: 'Upload', icon: Upload },
         ...(token && user.role !== "ADMIN"
 
             ? [
-            { path: '/profile', label: 'Profile', icon: User }
+                { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
+            ]
+            : []),
+        { path: user?.role === 'MASTER' ? '/jobs' : "/find-workers", label: user?.role === "MASTER" ? 'Jobs' : "Workers", icon: Briefcase },
+        ...(token && user.role === "MASTER"
+
+            ? [
+                { path: '/upload', label: 'Upload', icon: Upload }
+            ]
+            : []), ,
+        ...(token && user.role !== "ADMIN"
+
+            ? [
+                { path: '/profile', label: 'Profile', icon: User }
             ]
             : []),
     ]

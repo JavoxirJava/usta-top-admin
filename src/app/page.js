@@ -15,32 +15,32 @@ import { regionsApi } from '@/services/regionsApi';
 import { SkeletonSectionTitle } from '@/components/skeleton/SkeletonSectionTitle';
 import { SkeletonUserCard } from '@/components/skeleton/SkeletonCard';
 
-const CRAFTSMEN = [
-  {
-    id: 1,
-    name: 'Alex Morgan',
-    role: 'Electrician',
-    rating: 4.9,
-    location: 'San Francisco',
-    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 2,
-    name: 'Sarah Chen',
-    role: 'Interior Designer',
-    rating: 5.0,
-    location: 'New York',
-    img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-  },
-  {
-    id: 3,
-    name: 'Mike Ross',
-    role: 'Plumber',
-    rating: 4.8,
-    location: 'Chicago',
-    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-  },
-];
+// const CRAFTSMEN = [
+//   {
+//     id: 1,
+//     name: 'Alex Morgan',
+//     role: 'Electrician',
+//     rating: 4.9,
+//     location: 'San Francisco',
+//     img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
+//   },
+//   {
+//     id: 2,
+//     name: 'Sarah Chen',
+//     role: 'Interior Designer',
+//     rating: 5.0,
+//     location: 'New York',
+//     img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
+//   },
+//   {
+//     id: 3,
+//     name: 'Mike Ross',
+//     role: 'Plumber',
+//     rating: 4.8,
+//     location: 'Chicago',
+//     img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
+//   },
+// ];
 
 export default function HomePage() {
   const { scrollY } = useScroll();
@@ -54,9 +54,9 @@ export default function HomePage() {
     fetchUsers();
   }, []);
   const filteredUsers = users.filter((user) => {
-    const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+    const fullName = `${user.first_name ?? ''} ${user.last_name ?? ''}`.toLowerCase();
     return fullName.includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase()) || user.work_type.toLowerCase().includes(searchQuery.toLowerCase());
+      (user.role ?? '').toLowerCase().includes(searchQuery.toLowerCase()) || (user.work_type ?? '').toLowerCase().includes(searchQuery.toLowerCase());
   });
   const fetchUsers = async () => {
     try {

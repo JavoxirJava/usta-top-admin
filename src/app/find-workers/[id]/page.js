@@ -74,7 +74,7 @@ export default function ProfilePage() {
                 </div>
             </main>
 
-            <FloatingCTA />
+            <FloatingCTA number={user.phone_number}/>
         </PageTransition>
     )
 }

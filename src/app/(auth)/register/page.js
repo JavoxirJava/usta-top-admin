@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import {
@@ -22,6 +22,7 @@ import { PageTransition } from '@/components/PageTransition'
 import { ProgressIndicator } from '@/components/ProgressIndicator'
 import apiClient from '@/lib/apiClient'
 import { toast } from 'sonner'
+import { regionsApi } from '@/services/regionsApi'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -29,11 +30,27 @@ export default function RegisterPage() {
   const [direction, setDirection] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [regions, setRegions] = useState([]);
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchRegion()
+  }, [])
+  const fetchRegion = async () => {
+    try {
+      const res = await regionsApi.getAll()
+      setRegions(res.data)
+    } catch (err) {
+      toast.error(`Something went wrong: ${err}`)
+    } finally {
+      setLoading(false)
+    }
+  }
   // Form State
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    age: 0,
+    age: '',
     phone: '',
     email: '',
     password: '',
@@ -167,7 +184,7 @@ export default function RegisterPage() {
           }}
           className="absolute top-0 left-0 w-[800px] h-[800px] bg-blue-400/10 rounded-full blur-3xl"
         />
-        
+
         <motion.div
           animate={{
             scale: [1, 1.5, 1],
@@ -180,7 +197,7 @@ export default function RegisterPage() {
           }}
           className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-400/10 rounded-full blur-3xl"
         />
-        
+
       </div>
 
       <GlassCard className="w-full max-w-lg p-8 md:p-10 relative z-10">
@@ -373,15 +390,16 @@ export default function RegisterPage() {
                   <div className="relative">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
                     <select
-                      value={formData.region_id}
+                      value={formData.region_id || ""}
                       onChange={(e) => updateField('region_id', e.target.value)}
                       className={`w-full pl-12 pr-4 py-3 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all appearance-none cursor-pointer ${errors.region ? 'border-red-300 ring-2 ring-red-100' : 'border-white/40'}`}
                     >
-                      <option value="0" selected disabled>
+                      <option value={""} disabled>
                         Select your region
                       </option>
-                      <option value="6">Qashqadaryo</option>
-                      <option value="4">Buxoro</option>
+                      {regions && regions.length > 0 && regions.map((reg) => {
+                        return (<option key={reg.id} value={reg.id}>{reg.name}</option>)
+                      })}
                     </select>
                   </div>
                   {errors.region && (

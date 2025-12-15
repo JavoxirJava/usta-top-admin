@@ -18,6 +18,7 @@ import {
 import { TrendingUp, Users, Briefcase, DollarSign } from 'lucide-react';
 import { dashboardApi } from '@/services/dashboardApi';
 import { toast } from 'sonner';
+import { SkeletonDashboardPage } from '@/components/skeleton/SkeletonDashboardPage';
 
 const data = [
   { name: 'Mon', jobs: 4, income: 240 },
@@ -44,27 +45,27 @@ export default function DashboardPage() {
       setUser(JSON.parse(storedUser));
     }
   }, []);
-
+  const fetchDashboard = async (range = 'monthly') => {
+    try {
+      const res = await dashboardApi.getAll({ range })
+      setStats(res.data?.stats);
+      setWeeklyData(res.data?.weeklyData);
+      setWeeklyActive(res.data?.weeklyActive);
+    } catch (err) {
+      toast.error("Error: " + err);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (user) {
       // Dashboard stats fetch qilish
-      const fetchDashboard = async () => {
-        try {
-          const res = await dashboardApi.getAll()
-          setStats(res.data?.stats);
-          setWeeklyData(res.data?.weeklyData);
-          setWeeklyActive(res.data?.weeklyActive);
-        } catch (err) {
-          toast.error("Error: " + err);
-        } finally {
-          setLoading(false);
-        }
-      };
       fetchDashboard();
     }
+
   }, [user]);
 
-  if (!user || loading) return <div>Loading...</div>;
+  if (!user || loading) return <SkeletonDashboardPage />;
   const STATS = user.role === "MASTER" ? [
     { label: 'Total Clients', value: stats?.totalClients, icon: Users, color: 'text-green-600', bg: 'bg-green-100' },
     { label: 'Active Jobs', value: stats?.activeJobs, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-100' },
@@ -85,10 +86,13 @@ export default function DashboardPage() {
             <p className="text-gray-500">Overview of your performance</p>
           </div>
           <div className="flex gap-2">
-            <select className="bg-white/50 border border-white/40 rounded-xl px-4 py-2 text-sm focus:outline-none">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-              <option>This Year</option>
+            <select
+              onChange={(e) => fetchDashboard(e.target.value)}
+              className="bg-white/50 border rounded-xl px-4 py-2"
+            >
+              <option value="daily">Last 1 Day</option>
+              <option value="weekly">Last 7 Days</option>
+              <option value="monthly">Last 30 Days</option>
             </select>
           </div>
         </div>
@@ -140,7 +144,7 @@ export default function DashboardPage() {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     }}
                   />
-                  <Area type="monotone" dataKey={user.role === "MASTER" ? "clients" : "masters"}  stroke="#2F80ED" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                  <Area type="monotone" dataKey={user.role === "MASTER" ? "clients" : "masters"} stroke="#2F80ED" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -164,7 +168,7 @@ export default function DashboardPage() {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     }}
                   />
-                  <Bar dataKey={user.role === "MASTER" ? "jobs" : "workers"}  fill="#8B5CF6" radius={[4, 4, 0, 0]} barSize={40} />
+                  <Bar dataKey={user.role === "MASTER" ? "jobs" : "workers"} fill="#8B5CF6" radius={[4, 4, 0, 0]} barSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
