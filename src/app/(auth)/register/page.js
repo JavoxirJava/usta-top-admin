@@ -55,7 +55,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     region_id: '',
-    role: '', // 'master' or 'user'
+    role: '', // 'MASTER' or 'user'
   })
   const [errors, setErrors] = useState({})
   // Validation Logic
@@ -112,7 +112,7 @@ export default function RegisterPage() {
         setIsSubmitting(true)
         // Simulate API call
         const response = await apiClient.post("/api/auth/register", formData)
-        localStorage.setItem('user', JSON.stringify(user))
+        localStorage.setItem('user', JSON.stringify(response.data.user))
         localStorage.setItem('authToken', response.data?.token)
         router.push('/dashboard')
       }
@@ -435,31 +435,31 @@ export default function RegisterPage() {
                   <label
                     className={`
                       relative flex items-center p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200
-                      ${formData.role === 'master' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-white/40 bg-white/50 hover:border-blue-200 hover:bg-white/80'}
+                      ${formData.role === 'MASTER' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-white/40 bg-white/50 hover:border-blue-200 hover:bg-white/80'}
                     `}
                   >
                     <input
                       type="radio"
                       name="role"
-                      value="master"
-                      checked={formData.role === 'master'}
+                      value="MASTER"
+                      checked={formData.role === 'MASTER'}
                       onChange={(e) => updateField('role', e.target.value)}
                       className="sr-only"
                     />
                     <div
-                      className={`p-3 rounded-full mr-4 ${formData.role === 'master' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                      className={`p-3 rounded-full mr-4 ${formData.role === 'MASTER' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
                     >
                       <Briefcase size={24} />
                     </div>
                     <div className="flex-1">
                       <span className="block font-bold text-gray-900">
-                        Master / Craftsman
+                        MASTER / Craftsman
                       </span>
                       <span className="text-sm text-gray-500">
                         I want to offer my services and find jobs
                       </span>
                     </div>
-                    {formData.role === 'master' && (
+                    {formData.role === 'MASTER' && (
                       <motion.div
                         initial={{
                           scale: 0,
@@ -487,13 +487,13 @@ export default function RegisterPage() {
                     <input
                       type="radio"
                       name="role"
-                      value="user"
-                      checked={formData.role === 'user'}
+                      value="USER"
+                      checked={formData.role === 'USER'}
                       onChange={(e) => updateField('role', e.target.value)}
                       className="sr-only"
                     />
                     <div
-                      className={`p-3 rounded-full mr-4 ${formData.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                      className={`p-3 rounded-full mr-4 ${formData.role === 'USER' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
                     >
                       <User size={24} />
                     </div>

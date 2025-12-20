@@ -1,4 +1,4 @@
-
+import Cheking from "@/components/Cheking";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AnimatePresence } from 'framer-motion'
@@ -27,6 +27,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <AnimatePresence mode="wait">
         <body>
+          <Cheking />
           <NavigationWrapper />
           <main>
             {/* <AuthWrapper> */}

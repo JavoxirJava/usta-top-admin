@@ -2,13 +2,13 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { MapPin, ArrowRight } from 'lucide-react'
+import { MapPin, ArrowRight, Send } from 'lucide-react'
 import { GlassCard } from './GlassCard'
 import { GlassButton } from './GlassButton'
 import { StarRating } from './StarRating'
 
 
-export default function WorkerCard({ worker, regionName, onClick }) {
+export default function WorkerCard({ worker, regionName, onClick, onApplyRequest }) {
   const getAvatarGradient = (name = '') => {
     const gradients = [
       'from-pink-500 to-rose-500',
@@ -93,12 +93,21 @@ export default function WorkerCard({ worker, regionName, onClick }) {
         </div>
 
         {/* Footer */}
-        <div className="mt-auto pt-4 border-t border-white/20">
+        <div className="mt-auto flex gap-4 pt-4 border-t border-white/20">
           <GlassButton
             variant="secondary"
-            className="w-full text-sm py-2 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors"
+            className="w-full text-sm py-2 hover:bg-blue-50 hover:text-blue-600 transition-colors"
           >
             View Profile <ArrowRight size={16} />
+          </GlassButton>
+          <GlassButton
+            onClick={(e) => {
+              e.stopPropagation(); // onClick chainingni oldini oladi
+              onApplyRequest?.(worker)
+            }}
+            className="w-full text-sm py-2 bg-blue-400 hover:bg-blue-500 hover:text-blue-60 transition-colors"
+          >
+            Apply Request <Send size={16} />
           </GlassButton>
         </div>
       </div>

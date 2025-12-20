@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 export function CommentSection({
   comments,
+  portfolio_id,
   onAddComment,
 }) {
   const [sendir_name, setSendir_name] = useState('')
@@ -38,7 +39,7 @@ export function CommentSection({
       const payload = {
         comment: comment,
         level: level,
-        portfolio_id: 1, // 🔴 MUHIM
+        portfolio_id: portfolio_id, // 🔴 MUHIM
         sendir_name: sendir_name,
         sendir_email: sendir_email
       };
@@ -152,10 +153,21 @@ export function CommentSection({
                     <div>
                       <h4 className="font-bold text-gray-900">{comment.sendir_name}</h4>
                       <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                        <Calendar size={12} /> {comment.date || "12.12.2025"} 
+                        <Calendar size={12} />
+                        {comment.createdAt
+                          ? new Date(comment.createdAt).toLocaleString('en-US', {
+                            timeZone: 'Asia/Tashkent', // Toshkent vaqti
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                          : "none"}
                       </div>
+
                     </div>
-                    <StarRating rating={comment.level.data} readOnly size={16} />
+                    <StarRating rating={comment.level} readOnly size={16} />
                   </div>
                   <p className="text-gray-700 mt-2 leading-relaxed">{comment.comment}</p>
                 </motion.div>

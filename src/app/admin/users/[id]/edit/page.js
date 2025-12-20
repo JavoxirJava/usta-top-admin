@@ -1,19 +1,25 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import FormInput from '../../../../../components/FormInput';
-import SelectField from '../../../../../components/SelectField';
-import { usersApi } from '../../../../../services/usersApi';
-import { regionsApi } from '../../../../../services/regionsApi';
+import FormInput from '@/components/FormInput';
+import SelectField from '@/components/SelectField';
+import { usersApi } from '@/services/usersApi';
+import { regionsApi } from '@/services/regionsApi';
+import { portfolioImagesApi } from '@/services/portfolioImagesApi';
+import { Image, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function EditUserPage() {
     const router = useRouter();
     const params = useParams();
     const [regions, setRegions] = useState([]);
+    const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState(null);
+    const [imagesLoading, setImagesLoading] = useState(false);
+    const [showImageSelector, setShowImageSelector] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -34,6 +40,28 @@ export default function EditUserPage() {
         }
     };
 
+    const fetchImages = async () => {
+        setImagesLoading(true);
+        try {
+            const response = await portfolioImagesApi.getAll();
+            setImages(response.data || []);
+            setShowImageSelector(true);
+        } catch (err) {
+            toast.error('Failed to fetch images');
+        } finally {
+            setImagesLoading(false);
+        }
+    };
+
+    const handleImageSelect = (imageId) => {
+        setFormData({
+            ...formData,
+            image_id: imageId
+        });
+        setShowImageSelector(false);
+        toast.success('Image selected successfully!');
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
@@ -41,6 +69,7 @@ export default function EditUserPage() {
             [name]: type === 'checkbox' ? checked : value,
         });
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -126,6 +155,113 @@ export default function EditUserPage() {
                     onChange={handleChange}
                     options={regions.map(r => ({ value: r.id, label: r.name }))}
                 />
+
+                {/* Image Selection Section */}
+                <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Profile Image
+                    </label>
+                    
+                    {/* Current Image ID */}
+                    {formData.image_id && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-700">
+                                Current Image ID: <span className="font-semibold">{formData.image_id}</span>
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Select Image Button */}
+                    <button
+                        type="button"
+                        onClick={fetchImages}
+                        disabled={imagesLoading}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                        {imagesLoading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Loading Images...
+                            </>
+                        ) : (
+                            <>
+                                <Image className="w-4 h-4" />
+                                Select Image from Gallery
+                            </>
+                        )}
+                    </button>
+
+                    {/* Image Selector Modal */}
+                    {showImageSelector && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+                                <div className="p-4 border-b flex justify-between items-center">
+                                    <h3 className="text-lg font-semibold">Select Image</h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowImageSelector(false)}
+                                        className="text-gray-500 hover:text-gray-700"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-4">
+                                    {images.length === 0 ? (
+                                        <div className="text-center py-8 text-gray-500">
+                                            No images available
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            {images.map((image) => (
+                                                <div
+                                                    key={image.id}
+                                                    onClick={() => handleImageSelect(image.id)}
+                                                    className={`
+                                                        relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all
+                                                        ${formData.image_id == image.id 
+                                                            ? 'border-blue-500 ring-2 ring-blue-200' 
+                                                            : 'border-gray-200 hover:border-blue-300'
+                                                        }
+                                                    `}
+                                                >
+                                                    {image.url ? (
+                                                        <img
+                                                            src={image.url}
+                                                            alt={`Image ${image.id}`}
+                                                            className="w-full h-32 object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
+                                                            <Image className="w-8 h-8 text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                    {formData.image_id == image.id && (
+                                                        <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                                                            <Check className="w-4 h-4" />
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-2">
+                                                        ID: {image.id}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Image ID Input (Manual) */}
+                    <FormInput
+                        label="Image ID (or select from gallery above)"
+                        name="image_id"
+                        type="number"
+                        value={formData.image_id || ''}
+                        onChange={handleChange}
+                        placeholder="Enter image ID manually"
+                    />
+                </div>
 
                 <div className="flex gap-4">
                     <button

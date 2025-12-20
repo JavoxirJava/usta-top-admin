@@ -14,6 +14,9 @@ import { regionsApi } from '@/services/regionsApi'
 import { useRouter } from 'next/navigation'
 import { commentsApi } from '@/services/commentsApi'
 import { SkeletonUserCard } from '@/components/skeleton/SkeletonCard'
+import apiClient from '@/lib/apiClient'
+import { toast } from 'sonner'
+import FormInput from '@/components/FormInput'
 
 export default function FindWorkersPage() {
   const [workers, setWorkers] = useState([])
@@ -22,6 +25,15 @@ export default function FindWorkersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [regions, setRegions] = useState([])
+  const [dataModal, setDataModal] = useState(false)
+  const [showJobRequestModal, setShowJobRequestModal] = useState(false)
+  const [jobRequestData, setJobRequestData] = useState({
+    title: '',
+    description: '',
+    location: '',
+    budget: ''
+  })
+  const [submitting, setSubmitting] = useState(false)
   const router = useRouter();
   useEffect(() => {
     const fetchData = async () => {
@@ -66,22 +78,11 @@ export default function FindWorkersPage() {
       (worker.regionName ?? '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const fetchComments = async () => {
-    try {
-      const res = await commentsApi.getAll(1);
-      setComments(res.data)
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
 
   useEffect(() => {
     if (!selectedWorker) return;
 
 
-
-    fetchComments();
   }, [selectedWorker?.id]);
 
   const getAvatarGradient = (name = '') => {
@@ -97,6 +98,65 @@ export default function FindWorkersPage() {
     const charCode = name.charCodeAt(0) || 0;
     return gradients[charCode % gradients.length];
   };
+
+  const handleOpenJobRequestModal = () => {
+    setShowJobRequestModal(true)
+    setDataModal(false)
+  }
+
+  const handleCloseJobRequestModal = () => {
+    setShowJobRequestModal(false)
+    setJobRequestData({
+      title: '',
+      description: '',
+      location: '',
+      budget: ''
+    })
+  }
+
+  const handleJobRequestSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!selectedWorker) {
+      toast.error('Please select a worker first')
+      return
+    }
+
+    // Validation
+    if (!jobRequestData.title.trim() || !jobRequestData.description.trim() ||
+      !jobRequestData.location.trim() || !jobRequestData.budget.trim()) {
+      toast.error('Please fill in all fields')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      await apiClient.post('/api/job-requests', {
+        masterId: selectedWorker.id,
+        title: jobRequestData.title,
+        description: jobRequestData.description,
+        location: jobRequestData.location,
+        budget: parseFloat(jobRequestData.budget)
+      })
+
+      toast.success('Job request sent successfully!')
+      handleCloseJobRequestModal()
+      setSelectedWorker(null) // Close worker detail modal as well
+    } catch (err) {
+      console.error(err)
+      toast.error(err.response?.data?.message || 'Failed to send job request')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setJobRequestData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
   return (
     <PageTransition className="min-h-screen pt-32 pb-20 px-6">
       <div className="max-w-7xl mx-auto">
@@ -138,7 +198,13 @@ export default function FindWorkersPage() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {loading ? <SkeletonUserCard /> : <WorkerCard worker={worker} regionName={worker.regionName} onClick={() => setSelectedWorker(worker)} />}
+                    {loading ? <SkeletonUserCard /> : <WorkerCard worker={worker} regionName={worker.regionName} onClick={() => {
+                      setSelectedWorker(worker)
+                      router.push(`/find-workers/${selectedWorker.id}`)
+                    }} onApplyRequest={(worker) => {
+                      setSelectedWorker(worker)
+                      handleOpenJobRequestModal()  // Job Request modalni ochamiz
+                    }} />}
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -152,101 +218,106 @@ export default function FindWorkersPage() {
           </>
         )}
 
-        {/* Worker Detail Modal */}
+
+        {/* Job Request Modal */}
         <AnimatePresence>
-          {selectedWorker && (
+          {showJobRequestModal && selectedWorker && (
             <>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setSelectedWorker(null)}
-                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+                onClick={handleCloseJobRequestModal}
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60]"
               />
               <motion.div
-                layoutId={`worker-${selectedWorker.id}`}
-                initial={{ opacity: 0, y: 100, scale: 0.9 }}
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 100, scale: 0.9 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+                exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-auto"
               >
-                <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto pointer-events-auto">
+                <div className="w-full max-w-2xl pointer-events-auto">
                   <GlassCard className="relative overflow-hidden bg-white/90 backdrop-blur-2xl shadow-2xl">
                     <button
-                      onClick={() => setSelectedWorker(null)}
+                      onClick={handleCloseJobRequestModal}
                       className="absolute top-4 right-4 p-2 rounded-full bg-black/5 hover:bg-black/10 transition-colors z-10"
                     >
                       <X size={24} />
                     </button>
 
-                    <div className="flex flex-col md:flex-row">
-                      {/* Left Column */}
-                      <div className="p-8 md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200/50 bg-white/40">
-                        <div className="text-center md:text-left">
-                          {selectedWorker.avatar ? <img
-                            src={selectedWorker.avatar}
-                            alt={selectedWorker.name}
-                            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg mx-auto md:mx-0 mb-6"
-                          /> : <div
-                            className={`w-32 h-32 rounded-full flex items-center justify-center 
-      text-white font-bold text-6xl uppercase shadow-md border-2 border-white
-      bg-gradient-to-br ${getAvatarGradient(selectedWorker.first_name)}`}
-                          >
-                            {selectedWorker.first_name?.charAt(0)}
-                          </div>}
-                          <h2 className="text-2xl font-bold text-gray-900 mb-1">{selectedWorker.name}</h2>
-                          <p className="text-blue-600 font-medium text-lg mb-4">{selectedWorker.profession}</p>
+                    <div className="p-8">
+                      <h2 className="text-3xl font-bold text-gray-900 mb-2">Send Job Request</h2>
+                      <p className="text-gray-600 mb-6">
+                        Send a job request to <span className="font-semibold">{selectedWorker.first_name || selectedWorker.name}</span>
+                      </p>
 
-                          <div className="space-y-3 text-gray-600 mb-8">
-                            <div className="flex items-center justify-center md:justify-start gap-2">
-                              <MapPin size={18} />
-                              <span>{selectedWorker.location}</span>
-                            </div>
-                            <div className="flex items-center justify-center md:justify-start gap-2">
-                              <StarRating rating={selectedWorker.rating} readOnly size={18} />
-                              <span className="font-medium text-gray-900">{selectedWorker.rating}</span>
-                              <span className="text-sm">({selectedWorker.reviewCount} reviews)</span>
-                            </div>
-                            <div className="flex items-center justify-center md:justify-start gap-2">
-                              <Briefcase size={18} />
-                              <span>{selectedWorker.portfolio?.length || 0} Projects Completed</span>
-                            </div>
-                          </div>
+                      <form onSubmit={handleJobRequestSubmit} className="space-y-4">
+                        <FormInput
+                          label="Job Title"
+                          name="title"
+                          type="text"
+                          value={jobRequestData.title}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., Kitchen Renovation"
+                        />
 
-                          <GlassButton className="w-full justify-center" onClick={() => { router.push(`/find-workers/${selectedWorker.id}`) }}>Contact Worker</GlassButton>
-                        </div>
-                      </div>
-
-                      {/* Right Column */}
-                      <div className="p-8 md:w-2/3 bg-white/20">
-                        <div className="mb-10">
-                          <h3 className="text-xl font-bold text-gray-900 mb-6">Portfolio Gallery</h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {selectedWorker.portfolio?.map((img, idx) => (
-                              <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="aspect-video rounded-xl overflow-hidden bg-gray-100 shadow-sm group"
-                              >
-                                <img
-                                  src={img}
-                                  alt={`Project ${idx + 1}`}
-                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                />
-                              </motion.div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="border-t border-gray-200/50 pt-10">
-                          <CommentSection
-                            comments={comments || []}
-                            onAddComment={fetchComments}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Description <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            name="description"
+                            value={jobRequestData.description}
+                            onChange={handleInputChange}
+                            required
+                            placeholder="Describe your job requirements..."
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-                      </div>
+
+                        <FormInput
+                          label="Location"
+                          name="location"
+                          type="text"
+                          value={jobRequestData.location}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., Tashkent, Chilonzor"
+                        />
+
+                        <FormInput
+                          label="Budget (USD)"
+                          name="budget"
+                          type="number"
+                          value={jobRequestData.budget}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., 500"
+                          min="0"
+                          step="0.01"
+                        />
+
+                        <div className="flex gap-3 pt-4">
+                          <GlassButton
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={handleCloseJobRequestModal}
+                            disabled={submitting}
+                          >
+                            Cancel
+                          </GlassButton>
+                          <GlassButton
+                            type="submit"
+                            className="flex-1"
+                            disabled={submitting}
+                          >
+                            {submitting ? 'Sending...' : 'Send Request'}
+                          </GlassButton>
+                        </div>
+                      </form>
                     </div>
                   </GlassCard>
                 </div>

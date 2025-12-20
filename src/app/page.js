@@ -14,6 +14,8 @@ import { usersApi } from '@/services/usersApi';
 import { regionsApi } from '@/services/regionsApi';
 import { SkeletonSectionTitle } from '@/components/skeleton/SkeletonSectionTitle';
 import { SkeletonUserCard } from '@/components/skeleton/SkeletonCard';
+import { portfolioImagesApi } from '@/services/portfolioImagesApi';
+import { url } from '@/lib/apiClient';
 
 // const CRAFTSMEN = [
 //   {
@@ -50,6 +52,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([])
   const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -58,43 +61,63 @@ export default function HomePage() {
     return fullName.includes(searchQuery.toLowerCase()) ||
       (user.role ?? '').toLowerCase().includes(searchQuery.toLowerCase()) || (user.work_type ?? '').toLowerCase().includes(searchQuery.toLowerCase());
   });
+  console.log(users)
   const fetchUsers = async () => {
     try {
-      setLoading(true);
-      const resUsers = await usersApi.getAll();
-      let usersData = resUsers.data;
-      usersData = usersData.filter(u => u.role === 'MASTER');
+      setLoading(true)
 
-      const regionIds = [...new Set(usersData.map(u => u.region_id))];
+      const resUsers = await usersApi.getAll()
+      let usersData = resUsers.data.filter(u => u.role === 'MASTER')
 
-      // Bulk fetch all regions
-      const regionsData = {};
+      // regionlarni olish (sizdagi kod)
+      const regionIds = [...new Set(usersData.map(u => u.region_id))]
+      const regionsData = {}
+
       await Promise.all(
         regionIds.map(async (id) => {
-          if (!id) return; // null yoki undefined region_id larni o'tkazib yubor
+          if (!id) return
           try {
-            const res = await regionsApi.getById(id);
-            regionsData[id] = res.data.name;
-          } catch (err) {
-            regionsData[id] = 'Unknown'; // fetch xato bo'lsa ham fallback
+            const res = await regionsApi.getById(id)
+            regionsData[id] = res.data.name
+          } catch {
+            regionsData[id] = 'Unknown'
           }
         })
-      );
+      )
 
+      // 🔥 IMAGE + REGION birga birlashtiramiz
+      const usersWithExtras = await Promise.all(
+        usersData.map(async (u) => {
+          let imageUrl = null
 
-      const usersWithRegion = usersData.map(u => ({
-        ...u,
-        regionName: u.region_id ? regionsData[u.region_id] || 'Unknown' : 'Unknown'
-      }));
+          if (u.image_id) {
+            try {
+              const imgRes = await portfolioImagesApi.getById(u.image_id)
+              imageUrl = imgRes.data.image_path
+            } catch {
+              imageUrl = null
+            }
+          }
 
+          return {
+            ...u,
+            regionName: u.region_id
+              ? regionsData[u.region_id] || 'Unknown'
+              : 'Unknown',
+            imageUrl // 👈 CARD SHU BILAN ISHLAYDI
+          }
+        })
+      )
 
-      setUsers(usersWithRegion);
+      setUsers(usersWithExtras)
     } catch (err) {
-      toast.error('Error: Failed to fetch users');
+      toast.error('Error: Failed to fetch users')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+
   function getGradientColor(name) {
     const colors = [
       ["#2F80ED", "#56CCF2"],
@@ -207,8 +230,15 @@ export default function HomePage() {
                             background: `linear-gradient(135deg, ${getGradientColor(person.first_name)})`
                           }}
                         >
-                          {!person.img && (person.first_name?.[0].toUpperCase() || "?")}
-                          {person.img && <img src={person.img} alt={person.name} className="w-full h-full object-cover" />}
+                          {person.imageUrl ? (
+                            <img
+                              src={`${url}${person.imageUrl}`}
+                              alt={`${person.imageUrl } avatar`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            person.first_name?.[0]?.toUpperCase() || '?'
+                          )}
                         </div>
                         <div className="absolute bottom-0 right-0 bg-green-500 w-5 h-5 rounded-full border-2 border-white" />
                       </div>

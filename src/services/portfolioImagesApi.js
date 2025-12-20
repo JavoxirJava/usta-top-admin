@@ -6,4 +6,9 @@ export const portfolioImagesApi = {
     create: (data) => apiClient.post('/api/portfolio-images', data),
     update: (id, data) => apiClient.put(`/api/portfolio-images/${id}`, data),
     delete: (id) => apiClient.delete(`/api/portfolio-images/${id}`),
+    upload: (formData) => apiClient.post('/api/portfolio-images/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    }),
 };

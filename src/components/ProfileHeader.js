@@ -4,12 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { GlassCard } from './GlassCard';
 import { motion } from 'framer-motion';
 import { MapPin, Link as LinkIcon, Twitter, Linkedin, Github, Star } from 'lucide-react';
-import apiClient from '@/lib/apiClient';
+import apiClient, { url } from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { regionsApi } from '@/services/regionsApi';
 
 export function ProfileHeader({ regionName, userInfo }) {
-
+    console.log(userInfo)
     return (
         <div className="pt-32 pb-8 px-6">
             <GlassCard className="max-w-7xl mx-auto p-8 md:p-12 overflow-visible">
@@ -22,9 +22,9 @@ export function ProfileHeader({ regionName, userInfo }) {
                     >
                         <div className="absolute -inset-1 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur opacity-70" />
                         <div className="relative w-[140px] h-[140px] rounded-full overflow-hidden border-4 border-white shadow-2xl flex items-center justify-center bg-gray-200 text-gray-700 text-4xl font-bold">
-                            {userInfo.img ? (
+                            {userInfo.imageUrl ? (
                                 <img
-                                    src={userInfo.img} // yoki fallback rasm link
+                                    src={`${url}${userInfo.imageUrl}`} // yoki fallback rasm link
                                     alt="Profile"
                                     className="w-full h-full object-cover"
                                 />
