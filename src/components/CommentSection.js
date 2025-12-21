@@ -73,6 +73,7 @@ export function CommentSection({
                   onChange={(e) => setSendir_name(e.target.value)}
                   placeholder="Your Name"
                   className={`w-full pl-10 pr-4 py-2.5 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${errors.name ? 'border-red-300 ring-2 ring-red-100' : 'border-white/60'}`}
+                  required
                 />
               </div>
               {errors.sendir_name && <p className="text-xs text-red-500 ml-1">{errors.sendir_name}</p>}
@@ -83,6 +84,7 @@ export function CommentSection({
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
+                  required={false}
                   type="email"
                   value={sendir_email}
                   onChange={(e) => setSendir_email(e.target.value)}

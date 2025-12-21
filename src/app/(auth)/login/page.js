@@ -72,7 +72,7 @@ export default function LoginPage() {
           Back
         </button>
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Login</h1>
           <p className="text-gray-500">
             Sign in to manage your profile and jobs
           </p>

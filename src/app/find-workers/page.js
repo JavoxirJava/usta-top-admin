@@ -200,10 +200,7 @@ export default function FindWorkersPage() {
                   >
                     {loading ? <SkeletonUserCard /> : <WorkerCard worker={worker} regionName={worker.regionName} onClick={() => {
                       setSelectedWorker(worker)
-                      router.push(`/find-workers/${selectedWorker.id}`)
-                    }} onApplyRequest={(worker) => {
-                      setSelectedWorker(worker)
-                      handleOpenJobRequestModal()  // Job Request modalni ochamiz
+                      router.push(`/find-workers/${worker.id}`)
                     }} />}
                   </motion.div>
                 ))}
@@ -219,112 +216,6 @@ export default function FindWorkersPage() {
         )}
 
 
-        {/* Job Request Modal */}
-        <AnimatePresence>
-          {showJobRequestModal && selectedWorker && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={handleCloseJobRequestModal}
-                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[60]"
-              />
-              <motion.div
-                initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-auto"
-              >
-                <div className="w-full max-w-2xl pointer-events-auto">
-                  <GlassCard className="relative overflow-hidden bg-white/90 backdrop-blur-2xl shadow-2xl">
-                    <button
-                      onClick={handleCloseJobRequestModal}
-                      className="absolute top-4 right-4 p-2 rounded-full bg-black/5 hover:bg-black/10 transition-colors z-10"
-                    >
-                      <X size={24} />
-                    </button>
-
-                    <div className="p-8">
-                      <h2 className="text-3xl font-bold text-gray-900 mb-2">Send Job Request</h2>
-                      <p className="text-gray-600 mb-6">
-                        Send a job request to <span className="font-semibold">{selectedWorker.first_name || selectedWorker.name}</span>
-                      </p>
-
-                      <form onSubmit={handleJobRequestSubmit} className="space-y-4">
-                        <FormInput
-                          label="Job Title"
-                          name="title"
-                          type="text"
-                          value={jobRequestData.title}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="e.g., Kitchen Renovation"
-                        />
-
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Description <span className="text-red-500">*</span>
-                          </label>
-                          <textarea
-                            name="description"
-                            value={jobRequestData.description}
-                            onChange={handleInputChange}
-                            required
-                            placeholder="Describe your job requirements..."
-                            rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-
-                        <FormInput
-                          label="Location"
-                          name="location"
-                          type="text"
-                          value={jobRequestData.location}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="e.g., Tashkent, Chilonzor"
-                        />
-
-                        <FormInput
-                          label="Budget (USD)"
-                          name="budget"
-                          type="number"
-                          value={jobRequestData.budget}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="e.g., 500"
-                          min="0"
-                          step="0.01"
-                        />
-
-                        <div className="flex gap-3 pt-4">
-                          <GlassButton
-                            type="button"
-                            variant="secondary"
-                            className="flex-1"
-                            onClick={handleCloseJobRequestModal}
-                            disabled={submitting}
-                          >
-                            Cancel
-                          </GlassButton>
-                          <GlassButton
-                            type="submit"
-                            className="flex-1"
-                            disabled={submitting}
-                          >
-                            {submitting ? 'Sending...' : 'Send Request'}
-                          </GlassButton>
-                        </div>
-                      </form>
-                    </div>
-                  </GlassCard>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </div>
     </PageTransition>
   )

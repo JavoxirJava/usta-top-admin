@@ -287,14 +287,14 @@ export function Navigation() {
                                 )
                             })}
 
-                            {!token && <button onClick={() => {
+                            {/* {!token && <button onClick={() => {
                                 setIsOpen(false)
                                 handleRoute('/login')
                             }}>
                                 <button className="w-full p-4 bg-[#2F80ED] text-white rounded-2xl font-bold mt-4 shadow-xl">
                                     Login
                                 </button>
-                            </button>}
+                            </button>} */}
                             {token && <button onClick={handleToggle} className="relative p-2 rounded-full hover:bg-gray-100 transition">
                                 <Bell size={24} />
                                 {unreadCount > 0 && (

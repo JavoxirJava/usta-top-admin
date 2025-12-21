@@ -8,7 +8,7 @@ import { GlassButton } from './GlassButton'
 import { StarRating } from './StarRating'
 
 
-export default function WorkerCard({ worker, regionName, onClick, onApplyRequest }) {
+export default function WorkerCard({ worker, regionName, onClick }) {
   const getAvatarGradient = (name = '') => {
     const gradients = [
       'from-pink-500 to-rose-500',
@@ -99,15 +99,6 @@ export default function WorkerCard({ worker, regionName, onClick, onApplyRequest
             className="w-full text-sm py-2 hover:bg-blue-50 hover:text-blue-600 transition-colors"
           >
             View Profile <ArrowRight size={16} />
-          </GlassButton>
-          <GlassButton
-            onClick={(e) => {
-              e.stopPropagation(); // onClick chainingni oldini oladi
-              onApplyRequest?.(worker)
-            }}
-            className="w-full text-sm py-2 bg-blue-400 hover:bg-blue-500 hover:text-blue-60 transition-colors"
-          >
-            Apply Request <Send size={16} />
           </GlassButton>
         </div>
       </div>
