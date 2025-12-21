@@ -8,8 +8,6 @@ export const checkLogin = async () => {
     const token = localStorage.getItem('authToken')
     if(token){
         user.role === "ADMIN" ? (router.push('/admin')) : (router.push ('/')) 
-    }else if(!token ){
-        router.push('/login')
     }
 }
 

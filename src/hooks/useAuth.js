@@ -9,9 +9,9 @@ export default function useAuth() {
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
-        if (!token) {
-            router.push('/login');
-        } else {
+        if (token) {
+            // router.push('/login');
+            
             setIsAuthenticated(true);
         }
         setLoading(false);

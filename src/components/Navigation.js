@@ -43,8 +43,9 @@ export function Navigation() {
     }
 
     useEffect(() => {
+        if (!token) return
         fetchNotifications()
-    }, [])
+    }, [token])  
 
     const handleToggle = () => setOpen(!open)
 
