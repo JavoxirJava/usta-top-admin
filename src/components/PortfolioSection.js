@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { GlassCard } from './GlassCard';
-import { GlassButton } from './GlassButton';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, MessageCircle, User } from 'lucide-react';
-import { CommentSection } from './CommentSection';
-import { commentsApi } from '@/services/commentsApi';
 import { url } from '@/lib/apiClient';
+import { commentsApi } from '@/services/commentsApi';
+import { AnimatePresence, motion } from 'framer-motion';
+import { MessageCircle, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CommentSection } from './CommentSection';
+import { GlassCard } from './GlassCard';
 
 export function PortfolioSection({ portfolios }) {
   const [selectedPortfolio, setSelectedPortfolio] = useState(null);

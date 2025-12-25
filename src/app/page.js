@@ -1,21 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Search, MapPin, Star, ArrowRight } from 'lucide-react';
-import { GlassCard } from '../components/GlassCard';
-import { GlassButton } from '../components/GlassButton';
-import { PageTransition } from '../components/PageTransition';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { SkeletonHeroSection } from '@/components/skeleton/SkeletonHomeHero';
-import { usersApi } from '@/services/usersApi';
-import { regionsApi } from '@/services/regionsApi';
-import { SkeletonSectionTitle } from '@/components/skeleton/SkeletonSectionTitle';
 import { SkeletonUserCard } from '@/components/skeleton/SkeletonCard';
-import { portfolioImagesApi } from '@/services/portfolioImagesApi';
+import { SkeletonHeroSection } from '@/components/skeleton/SkeletonHomeHero';
+import { SkeletonSectionTitle } from '@/components/skeleton/SkeletonSectionTitle';
 import { url } from '@/lib/apiClient';
+import { portfolioImagesApi } from '@/services/portfolioImagesApi';
+import { regionsApi } from '@/services/regionsApi';
+import { usersApi } from '@/services/usersApi';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, MapPin, Search, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { GlassButton } from '../components/GlassButton';
+import { GlassCard } from '../components/GlassCard';
+import { PageTransition } from '../components/PageTransition';
 
 // const CRAFTSMEN = [
 //   {
@@ -233,7 +232,7 @@ export default function HomePage() {
                           {person.imageUrl ? (
                             <img
                               src={`${url}${person.imageUrl}`}
-                              alt={`${person.imageUrl } avatar`}
+                              alt={`${person.imageUrl} avatar`}
                               className="w-full h-full object-cover"
                             />
                           ) : (
