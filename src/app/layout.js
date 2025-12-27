@@ -1,11 +1,9 @@
 import Cheking from "@/components/Cheking";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { AnimatePresence } from 'framer-motion'
 import NavigationWrapper from "@/components/NavWrapper";
-import useAuth from "@/hooks/useAuth";
-import AuthWrapper from "@/components/AuthWrapper";
+import { AnimatePresence } from 'framer-motion';
+import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
