@@ -84,26 +84,13 @@ export function Navigation() {
 
     const links = [
         { path: '/', label: 'Home', icon: Home },
-        ...(token && user.role !== "ADMIN"
-
-            ? [
-                { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
-            ]
-            : []),
-
         { path: user?.role === 'MASTER' ? '/jobs' : "/find-workers", label: user?.role === "MASTER" ? 'Jobs' : "Workers", icon: Briefcase },
         // ...(token && user.role === "MASTER"
 
         //     ? [
         //         { path: '/upload', label: 'Upload', icon: Upload }
         //     ]
-        //     : []), ,
-        ...(token && user.role !== "ADMIN"
-
-            ? [
-                { path: '/profile', label: 'Profile', icon: User }
-            ]
-            : []),
+        //     : []), 
     ]
 
     useEffect(() => {
@@ -174,7 +161,7 @@ export function Navigation() {
                                     </span>
                                 )
                             })}
-
+{/* 
                             {!token &&
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
@@ -190,54 +177,10 @@ export function Navigation() {
                                 {unreadCount > 0 && (
                                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
                                 )}
-                            </button>}
+                            </button>} */}
                             {/* Bell button */}
 
 
-                            {/* Notification dropdown */}
-                            <AnimatePresence>
-                                {open && (
-                                    <motion.div
-                                        ref={dropdownRef}
-
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="absolute right-0 mt-20 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-200 z-50"
-                                    >
-                                        {loading ? (
-                                            <div className="p-4 text-gray-500 text-center">Loading...</div>
-                                        ) : notifications.length === 0 ? (
-                                            <div className="p-4 text-gray-500 text-center">No notifications</div>
-                                        ) : (
-                                            <div className="flex flex-col" >
-                                                {notifications.map(n => (
-                                                    <div
-                                                        onClick={() => { router.push('/job-requests') }}
-                                                        key={n.id}
-                                                        className={`p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 transition
-                      ${!n.isRead ? 'bg-blue-50' : 'bg-white'}
-                    `}
-                                                    >
-                                                        <p className="font-medium text-gray-900">{n.type || 'Notification'}</p>
-                                                        <p className="text-gray-600 text-sm">{n.message}</p>
-                                                        <p className="text-gray-400 text-xs mt-1">
-                                                            {new Date(n.createdAt).toLocaleString('en-US', {
-                                                                timeZone: 'Asia/Tashkent',
-                                                                year: 'numeric',
-                                                                month: 'short',
-                                                                day: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
                         </div>
 
                         {/* Mobile Toggle */}
