@@ -158,65 +158,117 @@ export default function FindWorkersPage() {
     }))
   }
   return (
-    <PageTransition className="min-h-screen pt-32 pb-20 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Find Craftsmen</h1>
-            <p className="text-gray-600 text-lg">Discover talented workers for your next project</p>
-          </div>
+  <PageTransition className="min-h-screen pt-32 pb-20 px-6">
+  <div className="max-w-7xl mx-auto">
+    {/* Header & Search (sizning kod) */}
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+      <div>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Find Craftsmen</h1>
+        <p className="text-gray-600 text-lg">Discover talented workers for your next project</p>
+      </div>
 
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by name or profession..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-            />
-          </div>
+      <div className="relative w-full md:w-96">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input
+          type="text"
+          placeholder="Search by name or profession..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+        />
+      </div>
+    </div>
+
+    {/* Workers Grid */}
+    {!loading && (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence mode="popLayout">
+            {filteredWorkers.map((worker) => (
+              <motion.div
+                key={worker.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+              >
+                <WorkerCard
+                  worker={worker}
+                  regionName={worker.regionName}
+                  onClick={() => {
+                    setSelectedWorker(worker);
+                    router.push(`/find-workers/${worker.id}`);
+                  }}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
-        {/* Loading */}
-        {/* {loading && (
-          <div className="text-center py-20 text-gray-500">Loading workers...</div>
-        )} */}
-
-        {/* Workers Grid */}
-        {!loading && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <AnimatePresence mode="popLayout">
-                {filteredWorkers.map((worker) => (
-                  <motion.div
-                    key={worker.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {loading ? <SkeletonUserCard /> : <WorkerCard worker={worker} regionName={worker.regionName} onClick={() => {
-                      setSelectedWorker(worker)
-                      router.push(`/find-workers/${worker.id}`)
-                    }} />}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-
-            {filteredWorkers.length === 0 && (
-              <div className="text-center py-20">
-                <p className="text-gray-500 text-lg">No workers found matching your search.</p>
-              </div>
-            )}
-          </>
+        {filteredWorkers.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-gray-500 text-lg">No workers found matching your search.</p>
+          </div>
         )}
+      </>
+    )}
 
-
+    {/* Informational Sections */}
+    <section className="mt-24 bg-blue-50 py-20 rounded-xl">
+      <div className="max-w-5xl mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-6">How it works</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 flex items-center justify-center bg-blue-100 rounded-full mb-4 text-2xl font-bold">1</div>
+            <p className="text-gray-700">Search for a craftsman by skills and reviews.</p>
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 flex items-center justify-center bg-blue-100 rounded-full mb-4 text-2xl font-bold">2</div>
+            <p className="text-gray-700">Contact and discuss your project details.</p>
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 flex items-center justify-center bg-blue-100 rounded-full mb-4 text-2xl font-bold">3</div>
+            <p className="text-gray-700">Hire and get the job done efficiently.</p>
+          </div>
+        </div>
       </div>
-    </PageTransition>
+    </section>
+
+    <section className="mt-20 py-20">
+      <div className="max-w-5xl mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-6">Why choose our craftsmen?</h2>
+        <p className="text-gray-700 mb-8">All our workers are verified and highly rated. Your project is in safe hands.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white rounded-xl shadow p-6">
+            <h3 className="font-bold mb-2">Verified Professionals</h3>
+            <p className="text-gray-600">Every worker is background checked for your safety.</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-6">
+            <h3 className="font-bold mb-2">Transparent Pricing</h3>
+            <p className="text-gray-600">No hidden costs, clear budget and payment.</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-6">
+            <h3 className="font-bold mb-2">Quality Guarantee</h3>
+            <p className="text-gray-600">Top-rated service with customer satisfaction in mind.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="mt-20 py-20 bg-blue-50 rounded-xl">
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-6">Tips for hiring a craftsman</h2>
+        <ul className="text-gray-700 list-disc list-inside space-y-2">
+          <li>Check reviews and ratings carefully.</li>
+          <li>Discuss your project in detail before hiring.</li>
+          <li>Agree on the timeline and budget upfront.</li>
+          <li>Communicate clearly throughout the project.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</PageTransition>
+
   )
 }

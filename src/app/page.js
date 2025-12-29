@@ -1,272 +1,345 @@
 "use client";
 
-import { SkeletonUserCard } from '@/components/skeleton/SkeletonCard';
-import { SkeletonHeroSection } from '@/components/skeleton/SkeletonHomeHero';
-import { SkeletonSectionTitle } from '@/components/skeleton/SkeletonSectionTitle';
-import { url } from '@/lib/apiClient';
-import { portfolioImagesApi } from '@/services/portfolioImagesApi';
-import { regionsApi } from '@/services/regionsApi';
-import { usersApi } from '@/services/usersApi';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, MapPin, Search, Star } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { GlassButton } from '../components/GlassButton';
-import { GlassCard } from '../components/GlassCard';
-import { PageTransition } from '../components/PageTransition';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Search, Star, MapPin, ArrowRight, CheckCircle } from "lucide-react";
+import { SkeletonHeroSection } from "@/components/skeleton/SkeletonHomeHero";
+import { SkeletonSectionTitle } from "@/components/skeleton/SkeletonSectionTitle";
+import { SkeletonUserCard } from "@/components/skeleton/SkeletonCard";
+import { GlassCard } from "@/components/GlassCard";
+import { GlassButton } from "@/components/GlassButton";
+import { PageTransition } from "@/components/PageTransition";
+import { url } from "@/lib/apiClient";
+import { toast } from "sonner";
+import { usersApi } from "@/services/usersApi";
+import { regionsApi } from "@/services/regionsApi";
+import { portfolioImagesApi } from "@/services/portfolioImagesApi";
 
-// const CRAFTSMEN = [
-//   {
-//     id: 1,
-//     name: 'Alex Morgan',
-//     role: 'Electrician',
-//     rating: 4.9,
-//     location: 'San Francisco',
-//     img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-//   },
-//   {
-//     id: 2,
-//     name: 'Sarah Chen',
-//     role: 'Interior Designer',
-//     rating: 5.0,
-//     location: 'New York',
-//     img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-//   },
-//   {
-//     id: 3,
-//     name: 'Mike Ross',
-//     role: 'Plumber',
-//     rating: 4.8,
-//     location: 'Chicago',
-//     img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-//   },
-// ];
+// ---------------- STATIC DATA — TASKRABBIT‑LIKE ----------------
+const SERVICE_CATEGORIES = [
+  {
+    title: "Furniture Assembly",
+    img: "https://images.airtasker.com/v7/https://airtasker-seo-assets-prod.s3.amazonaws.com/en_GB/1643559106526_furniture-assembly.jpg",
+  },
+  {
+    title: "Home Cleaning",
+    img: "https://www.thespruce.com/thmb/f-8SHiPrpdI-V5cfbamOOno5fzI=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/SPR-house-cleaning-checklist-5443113-hero-bfe165b4af2f4a86ac0ace570db9a333.jpg",
+  },
+  {
+    title: "Moving & Packing",
+    img: "https://www.thespruce.com/thmb/LRk_EibWLPqjClNSDYRXGNL8E9g=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/packing-your-home-for-household-move-2436497-Hero-263ec036e44a44e2bf8c8175e192ca69.jpg",
+  },
+  {
+    title: "Painting & Repairs",
+    img: "https://www.paintingservicesingapore.com/wp-content/uploads/2023/07/How-To-Repair-And-Patch-Walls-Before-Painting.jpg",
+  },
+];
+
+const FEATURED_SERVICES = [
+  {
+    title: "General Furniture Assembly",
+    img: "https://www.2modern.com/cdn/shop/files/tier1_banner_furniture_mobile_x320.jpg?v=1704898378",
+    startPrice: "$49+",
+  },
+  {
+    title: "TV Mount Installation",
+    img: "https://installmyantenna.com.au/wp-content/uploads/2018/10/shutterstock_760702759.jpg",
+    startPrice: "$69+",
+  },
+  {
+    title: "Apartment Cleaning",
+    img: "https://images.pexels.com/photos/373965/pexels-photo-373965.jpeg?auto=compress&cs=tinysrgb&w=600",
+    startPrice: "$59+",
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    name: "Emily R.",
+    text: "I found a pro in minutes — great service!",
+    avatar: "https://randomuser.me/api/portraits/women/65.jpg",
+  },
+  {
+    name: "Michael W.",
+    text: "Efficient & friendly taskers. Highly recommend.",
+    avatar: "https://randomuser.me/api/portraits/men/73.jpg",
+  },
+  {
+    name: "Laura T.",
+    text: "The best experience hiring home help online.",
+    avatar: "https://randomuser.me/api/portraits/women/54.jpg",
+  },
+];
+
+const FAQ = [
+  { q: "How do I book a task?", a: "Choose service → Select pro → Schedule it." },
+  { q: "Are taskers verified?", a: "Yes! All taskers are background checked." },
+  { q: "Can I schedule same day?", a: "Yes, same-day bookings are available." },
+];
 
 export default function HomePage() {
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-  const y2 = useTransform(scrollY, [0, 500], [0, -150]);
   const router = useRouter();
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 400], [0, 200]);
+  const y2 = useTransform(scrollY, [0, 400], [0, -150]);
+
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState([])
-  const [searchQuery, setSearchQuery] = useState('');
+  const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-  const filteredUsers = users.filter((user) => {
-    const fullName = `${user.first_name ?? ''} ${user.last_name ?? ''}`.toLowerCase();
-    return fullName.includes(searchQuery.toLowerCase()) ||
-      (user.role ?? '').toLowerCase().includes(searchQuery.toLowerCase()) || (user.work_type ?? '').toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => { fetchUsers(); }, []);
+
+  const filteredUsers = users.filter((u) => {
+    const name = `${u.first_name ?? ""} ${u.last_name ?? ""}`.toLowerCase();
+    return name.includes(searchQuery.toLowerCase()) || (u.role ?? "").toLowerCase().includes(searchQuery.toLowerCase());
   });
-  console.log(users)
-  const fetchUsers = async () => {
+
+  async function fetchUsers() {
     try {
-      setLoading(true)
+      setLoading(true);
+      const res = await usersApi
+        .getAll();
+      let masters = res.data.filter((u) => u.role === "MASTER");
 
-      const resUsers = await usersApi.getAll()
-      let usersData = resUsers.data.filter(u => u.role === 'MASTER')
+      const regionIds = [...new Set(masters.map((u) => u.region_id))];
+      let regions = {};
+      await Promise.all(regionIds.map(async (id) => {
+        try { const r = await regionsApi.getById(id); regions[id] = r.data.name; }
+        catch { regions[id] = "Unknown"; }
+      }));
 
-      // regionlarni olish (sizdagi kod)
-      const regionIds = [...new Set(usersData.map(u => u.region_id))]
-      const regionsData = {}
-
-      await Promise.all(
-        regionIds.map(async (id) => {
-          if (!id) return
+      const enriched = await Promise.all(masters.map(async (u) => {
+        let imageUrl = null;
+        if (u.image_id) {
           try {
-            const res = await regionsApi.getById(id)
-            regionsData[id] = res.data.name
-          } catch {
-            regionsData[id] = 'Unknown'
-          }
-        })
-      )
+            const img = await portfolioImagesApi.getById(u.image_id);
+            imageUrl = img.data.image_path;
+          } catch { }
+        }
+        return { ...u, regionName: regions[u.region_id] || "Unknown", imageUrl };
+      }));
 
-      // 🔥 IMAGE + REGION birga birlashtiramiz
-      const usersWithExtras = await Promise.all(
-        usersData.map(async (u) => {
-          let imageUrl = null
-
-          if (u.image_id) {
-            try {
-              const imgRes = await portfolioImagesApi.getById(u.image_id)
-              imageUrl = imgRes.data.image_path
-            } catch {
-              imageUrl = null
-            }
-          }
-
-          return {
-            ...u,
-            regionName: u.region_id
-              ? regionsData[u.region_id] || 'Unknown'
-              : 'Unknown',
-            imageUrl // 👈 CARD SHU BILAN ISHLAYDI
-          }
-        })
-      )
-
-      setUsers(usersWithExtras)
-    } catch (err) {
-      toast.error('Error: Failed to fetch users')
-    } finally {
-      setLoading(false)
-    }
+      setUsers(enriched);
+    } catch (e) { toast.error("Failed to fetch pros"); }
+    finally { setLoading(false); }
   }
-
-
-  function getGradientColor(name) {
-    const colors = [
-      ["#2F80ED", "#56CCF2"],
-      ["#FF5F6D", "#FFC371"],
-      ["#36D1DC", "#5B86E5"],
-      ["#FFB75E", "#ED8F03"],
-      ["#00B09B", "#96C93D"]
-    ];
-    const index = name ? name.charCodeAt(0) % colors.length : 0;
-    return colors[index].join(",");
-  }
-
 
   return (
-    <PageTransition className="min-h-screen pt-32 pb-20 px-6">
-      {/* Hero Section */}
-      {loading ? <SkeletonHeroSection /> :
-        (<section className="max-w-4xl mx-auto text-center mb-24 relative">
-          <motion.div
-            style={{ y: y1 }}
-            className="absolute -top-20 -left-20 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl -z-10"
+    <PageTransition className="relative overflow-hidden">
+
+      {/* HERO - Big Banner */}
+      <section className="min-h-screen relative flex flex-col items-center justify-center text-center px-6 bg-gradient-to-b from-white to-slate-100">
+        <motion.div style={{ y: y1 }} className="absolute top-0 left-0 w-full h-full bg-[url('https://images.pexels.com/photos/7045694/pexels-photo-7045694.jpeg?auto=compress&cs=tinysrgb&w=1200')] bg-cover bg-center opacity-30 -z-10" />
+        <motion.h1 className="text-5xl md:text-7xl font-bold mb-4">
+          Book Trusted Help <br />for Your Home Tasks
+        </motion.h1>
+        <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+          Same‑day help for cleaning, moving, furniture assembly & more. Trusted taskers ready to help.
+        </p>
+        <div className="flex items-center justify-center gap-3 max-w-xl mx-auto">
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="What do you need done?"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none"
           />
-          <motion.div
-            style={{ y: y2 }}
-            className="absolute top-40 -right-20 w-72 h-72 bg-purple-400/20 rounded-full blur-3xl -z-10"
-          />
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 tracking-tight"
-          >
-            Find the perfect <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2F80ED] to-purple-600">
-              Craftsman
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto"
-          >
-            Connect with top-rated professionals for your home projects. Trusted,
-            verified, and ready to help.
-          </motion.p>
-
-          {/* Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="max-w-2xl mx-auto relative z-10"
-          >
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity" />
-              <div className="relative flex items-center bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl p-2 shadow-2xl">
-                <Search className="ml-4 text-gray-400 w-6 h-6" />
-                <input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-
-                  type="text"
-                  placeholder="What service do you need?"
-                  className="w-full px-4 py-3 bg-transparent border-none outline-none text-lg text-gray-800 placeholder-gray-400"
-                />
-                <GlassButton className="hidden md:flex">Search</GlassButton>
-              </div>
-            </div>
-          </motion.div>
-        </section>)
-      }
-
-      {/* Featured Craftsmen */}
-      <section className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-end mb-10">
-          {loading ? <SkeletonSectionTitle /> : (<h2 className="text-3xl font-bold text-gray-900">Top Rated Pros</h2>)}
-          {loading ?
-            (<div className="w-32 h-10 bg-gray-300 rounded-md animate-pulse"></div>) : <button onClick={() => { router.push('/find-workers') }}
-              className="text-[#2F80ED] font-medium flex items-center gap-1 hover:gap-2 transition-all"
-            >
-              View all <ArrowRight size={16} />
-            </button>}
+          <GlassButton>Search</GlassButton>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {loading
-            ? users.length > 0
-              ? users.map((_, i) => <SkeletonUserCard key={i} />)
-              : Array.from({ length: 3 }).map((_, i) => <SkeletonUserCard key={i} />)
-            : filteredUsers && filteredUsers.length > 0
-              ? filteredUsers.map((person, i) => (
-                <div key={person.id} onClick={() => router.push(`/find-workers/${person.id}`)}>
-                  {loading
-                    ? <SkeletonUserCard />
-                    :
-                    (<GlassCard
-                      hoverEffect
-                      className="p-6 h-full flex flex-col items-center text-center group"
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                    >
-                      <div className="relative mb-4">
-                        <div
-                          className={`w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg flex items-center justify-center text-white text-2xl font-bold`}
-                          style={{
-                            background: `linear-gradient(135deg, ${getGradientColor(person.first_name)})`
-                          }}
-                        >
-                          {person.imageUrl ? (
-                            <img
-                              src={`${url}${person.imageUrl}`}
-                              alt={`${person.imageUrl} avatar`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            person.first_name?.[0]?.toUpperCase() || '?'
-                          )}
-                        </div>
-                        <div className="absolute bottom-0 right-0 bg-green-500 w-5 h-5 rounded-full border-2 border-white" />
-                      </div>
-
-
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">
-                        {`${person.first_name} ${person.last_name}`}
-                      </h3>
-                      <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm font-medium mb-4">
-                        {person.role}
-                      </span>
-
-                      <div className="flex items-center justify-center gap-4 text-sm text-gray-500 w-full pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                          <span className="font-bold text-gray-900">{person.rating || '5'}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {person.regionName}
-                        </div>
-                      </div>
-                    </GlassCard>)}
-                </div>
-              )) : <p className="text-center col-span-full text-gray-500">No users found.</p>
-          }
-        </div>
-
       </section>
-    </PageTransition >
+
+      {/* SERVICE CATEGORIES */}
+      <section className="px-6 py-20 max-w-7xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-10">Browse Services</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {SERVICE_CATEGORIES.map((c, i) => (
+            <GlassCard key={i} className="overflow-hidden p-0">
+              <img src={c.img} className="w-full h-40 object-cover" />
+              <div className="p-4 text-center font-semibold">{c.title}</div>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURED SERVICES */}
+      <section className="px-6 py-20 bg-slate-50">
+        <h2 className="text-3xl font-bold text-center mb-10">Popular Projects</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {FEATURED_SERVICES.map((s, i) => (
+            <GlassCard key={i} className="overflow-hidden">
+              <img src={s.img} className="w-full h-52 object-cover" />
+              <div className="p-4">
+                <h3 className="font-bold text-xl">{s.title}</h3>
+                <p className="text-gray-600 mt-1">Starting at {s.startPrice}</p>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
+
+      {/* WHY CHOOSE US */}
+      <section className="px-6 py-20 max-w-7xl mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-8">Why Choose Us?</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {["Verified Pros", "Easy Scheduling", "Satisfaction Guaranteed"].map((text, i) => (
+            <GlassCard key={i} className="p-6">
+              <CheckCircle className="text-blue-500 mx-auto mb-4" size={32} />
+              <p className="font-semibold">{text}</p>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
+
+      {/* TOP RATED PROS */}
+      <section className="px-6 py-20 bg-slate-100">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold">Top Rated Pros</h2>
+          <button onClick={() => router.push("/find-workers")} className="text-blue-600 font-semibold">
+            View all <ArrowRight size={18} />
+          </button>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8">
+          {loading
+            ? Array.from({ length: 3 }).map((_, i) => <SkeletonUserCard key={i} />)
+            : filteredUsers.map((p, i) => (
+              <GlassCard key={i} className="p-6 cursor-pointer" onClick={() => router.push(`/find-workers/${p.id}`)}>
+                <div className="w-full h-40 bg-gray-200 rounded-lg overflow-hidden mb-4">
+                  {p.imageUrl && <img src={url + p.imageUrl} className="w-full h-full object-cover" />}
+                </div>
+                <h3 className="font-bold text-xl">{`${p.first_name} ${p.last_name}`}</h3>
+                <div className="flex gap-2 text-sm text-gray-600">
+                  <Star className="text-yellow-400 w-4 h-4" /> {p.rating || "5"}
+                  <MapPin className="w-4 h-4" /> {p.regionName}
+                </div>
+              </GlassCard>
+            ))}
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="px-6 py-20 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-10">What People Say</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {TESTIMONIALS.map((t, i) => (
+            <GlassCard key={i} className="p-6 text-center">
+              <img src={t.avatar} className="w-16 h-16 rounded-full mx-auto mb-3" />
+              <p className="text-gray-700 mb-2">“{t.text}”</p>
+              <strong>{t.name}</strong>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="px-6 py-20 bg-slate-50 max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-10">Frequently Asked Questions</h2>
+        <div className="space-y-4">
+          {FAQ.map((f, i) => (
+            <GlassCard key={i} className="p-6">
+              <h3 className="font-semibold">{f.q}</h3>
+              <p className="text-gray-600">{f.a}</p>
+            </GlassCard>
+          ))}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <img src="https://img.icons8.com/color/96/000000/happy.png" alt="Satisfaction" className="mx-auto mb-4" />
+            <h3 className="font-bold text-xl mb-2">Your satisfaction, guaranteed</h3>
+            <p className="text-gray-600">If you’re not satisfied, we’ll work to make it right.</p>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <img src="https://img.icons8.com/color/96/000000/verified-account.png" alt="Vetted" className="mx-auto mb-4" />
+            <h3 className="font-bold text-xl mb-2">Vetted Taskers</h3>
+            <p className="text-gray-600">Taskers are always background checked before joining the platform.</p>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <img src="https://img.icons8.com/color/96/000000/customer-support.png" alt="Support" className="mx-auto mb-4" />
+            <h3 className="font-bold text-xl mb-2">Dedicated Support</h3>
+            <p className="text-gray-600">Friendly service when you need us – every day of the week.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto text-center mb-16">
+          <h2 className="text-4xl font-bold mb-6">How it works</h2>
+          <p className="text-gray-600 text-lg">Get help in 3 simple steps</p>
+        </div>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-20 h-20 flex items-center justify-center bg-blue-100 rounded-full mb-4 text-2xl font-bold">1</div>
+            <h3 className="font-bold mb-2">Choose a Tasker</h3>
+            <p className="text-gray-600">By price, skills, and reviews.</p>
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-20 h-20 flex items-center justify-center bg-blue-100 rounded-full mb-4 text-2xl font-bold">2</div>
+            <h3 className="font-bold mb-2">Schedule a Tasker</h3>
+            <p className="text-gray-600">As early as today.</p>
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-20 h-20 flex items-center justify-center bg-blue-100 rounded-full mb-4 text-2xl font-bold">3</div>
+            <h3 className="font-bold mb-2">Chat, pay, tip & review</h3>
+            <p className="text-gray-600">All in one place.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Call To Action */}
+      <section className="py-20 bg-blue-600 text-white text-center">
+        <h2 className="text-4xl font-bold mb-6">Get help today</h2>
+        <p className="mb-8">See all services and find trusted taskers near you.</p>
+        
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 py-16">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
+          <div>
+            <h3 className="font-bold mb-4 text-white">Discover</h3>
+            <ul className="space-y-2">
+              <li>Become a Tasker</li>
+              <li>Services By City</li>
+              <li>Services Nearby</li>
+              <li>All Services</li>
+              <li>Elite Taskers</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4 text-white">Help</h3>
+            <ul className="space-y-2">
+              <li>Company</li>
+              <li>About Us</li>
+              <li>Careers</li>
+              <li>Partner with Taskrabbit</li>
+              <li>Press</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4 text-white">Legal</h3>
+            <ul className="space-y-2">
+              <li>Terms & Privacy</li>
+              <li>California Consumer Notice</li>
+              <li>Do Not Sell My Personal Information</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4 text-white">Download App</h3>
+            <div className="flex flex-col gap-4">
+              <a href={'https://www.apple.com/app-store/'} target="blank" className="bg-white text-blue-600 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition">Apple Store</a>
+              <a href="https://play.google.com/store/games?hl=en" target="blank" className="bg-white text-blue-600 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition">Google Play Store</a>
+            </div>
+          </div>
+        </div>
+        <p className="text-center mt-10 text-gray-500 text-sm">
+          &copy; 2025 TaskClone. All rights reserved.
+        </p>
+      </footer>
+
+    </PageTransition>
   );
 }
