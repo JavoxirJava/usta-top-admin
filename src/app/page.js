@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Search, Star, MapPin, ArrowRight, CheckCircle } from "lucide-react";
-import { SkeletonHeroSection } from "@/components/skeleton/SkeletonHomeHero";
-import { SkeletonSectionTitle } from "@/components/skeleton/SkeletonSectionTitle";
-import { SkeletonUserCard } from "@/components/skeleton/SkeletonCard";
-import { GlassCard } from "@/components/GlassCard";
 import { GlassButton } from "@/components/GlassButton";
+import { GlassCard } from "@/components/GlassCard";
 import { PageTransition } from "@/components/PageTransition";
+import { SkeletonUserCard } from "@/components/skeleton/SkeletonCard";
 import { url } from "@/lib/apiClient";
-import { toast } from "sonner";
-import { usersApi } from "@/services/usersApi";
-import { regionsApi } from "@/services/regionsApi";
 import { portfolioImagesApi } from "@/services/portfolioImagesApi";
+import { regionsApi } from "@/services/regionsApi";
+import { usersApi } from "@/services/usersApi";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, CheckCircle, MapPin, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // ---------------- STATIC DATA — TASKRABBIT‑LIKE ----------------
 const SERVICE_CATEGORIES = [
