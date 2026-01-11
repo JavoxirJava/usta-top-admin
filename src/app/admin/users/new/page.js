@@ -18,16 +18,16 @@ export default function NewUserPage() {
         phone_number: '',
         email: '',
         password: '',
-        role: 'user',
+        role: 'USER',
         lat: '',
         lon: '',
-        image_id: '',
+        // image_id: '',
         experience: '',
-        experience_type: 'year',
+        experience_type: 'YEAR',
         is_priumium: false,
-        work_start: '',
-        work_end: '',
-        work_type: 'online',
+        // work_start: '',
+        // work_end: '',
+        work_type: 'FIVE_DAYS',
         region_id: '',
     });
 
@@ -128,8 +128,8 @@ export default function NewUserPage() {
                     value={formData.role}
                     onChange={handleChange}
                     options={[
-                        { value: 'user', label: 'User' },
-                        { value: 'admin', label: 'Admin' },
+                        { value: 'USER', label: 'User' },
+                        { value: 'ADMIN', label: 'Admin' },
                     ]}
                 />
                 <FormInput
@@ -157,8 +157,8 @@ export default function NewUserPage() {
                     value={formData.experience_type}
                     onChange={handleChange}
                     options={[
-                        { value: 'year', label: 'Year' },
-                        { value: 'month', label: 'Month' },
+                        { value: 'YEAR', label: 'Year' },
+                        { value: 'MONTH', label: 'Month' },
                     ]}
                 />
                 <SelectField
@@ -167,9 +167,9 @@ export default function NewUserPage() {
                     value={formData.work_type}
                     onChange={handleChange}
                     options={[
-                        { value: 'online', label: 'Online' },
-                        { value: 'offline', label: 'Offline' },
-                        { value: 'both', label: 'Both' },
+                        { value: 'FIVE_DAYS', label: 'Five Days' },
+                        { value: 'FULL_TIME', label: 'Full Time' },
+                        { value: 'PART_TIME', label: 'Part Time' },
                     ]}
                 />
                 <SelectField
