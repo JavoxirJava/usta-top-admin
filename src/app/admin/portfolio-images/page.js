@@ -149,9 +149,11 @@ export default function PortfolioImagesPage() {
         setUploadProgress(0);
 
         try {
+            
             const uploadFormData = new FormData();
-            uploadFormData.append('image', selectedFile);
+            uploadFormData.append('images', selectedFile);
             uploadFormData.append('portfolio_id', formData.portfolio_id);
+console.log(uploadFormData);
 
             const response = await portfolioImagesApi.upload(uploadFormData);
             
