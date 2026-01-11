@@ -7,6 +7,7 @@ import { portfoliosApi } from '../../../services/portfoliosApi';
 import { portfolioImagesApi } from '../../../services/portfolioImagesApi';
 import { UploadCloud, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { usersApi } from '@/services/usersApi';
 
 export default function PortfoliosPage() {
     const [portfolios, setPortfolios] = useState([]);
@@ -17,6 +18,7 @@ export default function PortfoliosPage() {
     const [showUploadForm, setShowUploadForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [selectedPortfolioId, setSelectedPortfolioId] = useState(null);
+    const [users, setUsers] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -32,6 +34,7 @@ export default function PortfoliosPage() {
 
     useEffect(() => {
         fetchData();
+        fetchUsers();
     }, []);
 
     const fetchData = async () => {
@@ -44,6 +47,17 @@ export default function PortfoliosPage() {
             setImages(imagesResponse.data || []);
         } catch (err) {
             setError('Failed to fetch data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const response = await usersApi.getAll();
+            setUsers(response.data);
+        } catch (err) {
+            setError('Failed to fetch users');
         } finally {
             setLoading(false);
         }
@@ -214,6 +228,19 @@ export default function PortfoliosPage() {
                         {editingId ? 'Edit Portfolio' : 'New Portfolio'}
                     </h2>
                     <form onSubmit={handleSubmitPortfolio}>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Description
+                            </label>
+                            <select name="user_id" value={formData.user_id} onChange={(e) => setFormData({ ...formData, user_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select User</option>
+                                {users.filter(user => user.role === 'USER').map(user => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.first_name} {user.last_name} ({user.email})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                         <FormInput
                             label="Portfolio Name"
                             name="name"
