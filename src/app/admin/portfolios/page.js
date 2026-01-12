@@ -1,13 +1,14 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import Table from '../../../components/Table';
-import FormInput from '../../../components/FormInput';
-import SelectField from '../../../components/SelectField';
-import { portfoliosApi } from '../../../services/portfoliosApi';
-import { portfolioImagesApi } from '../../../services/portfolioImagesApi';
-import { UploadCloud, X } from 'lucide-react';
-import { toast } from 'sonner';
 import { usersApi } from '@/services/usersApi';
+import { UploadCloud, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import FormInput from '../../../components/FormInput';
+import Table from '../../../components/Table';
+import { portfolioImagesApi } from '../../../services/portfolioImagesApi';
+import { portfoliosApi } from '../../../services/portfoliosApi';
+import { useRouter } from 'next/navigation';
+
 
 export default function PortfoliosPage() {
     const [portfolios, setPortfolios] = useState([]);
@@ -17,20 +18,19 @@ export default function PortfoliosPage() {
     const [showForm, setShowForm] = useState(false);
     const [showUploadForm, setShowUploadForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [selectedPortfolioId, setSelectedPortfolioId] = useState(null);
     const [users, setUsers] = useState([]);
+
+    // Image upload states
+    const [files, setFiles] = useState([]);
+    const inputRef = useRef(null);
+
+    const router = useRouter();
 
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         user_id: ''
     });
-
-    // Upload states
-    const [selectedFiles, setSelectedFiles] = useState([]);
-    const [previews, setPreviews] = useState([]);
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef(null);
 
     useEffect(() => {
         fetchData();
@@ -51,6 +51,40 @@ export default function PortfoliosPage() {
             setLoading(false);
         }
     };
+
+    /// Fetch Images
+
+    const onSelectFiles = (e) => {
+        const selected = Array.from(e.target.files).slice(0, 5);
+        setFiles(selected);
+    };
+
+    const removeFileOne = (index) => {
+        setFiles(files.filter((_, i) => i !== index));
+    };
+
+    const onDrop = (e) => {
+        e.preventDefault();
+        const dropped = Array.from(e.dataTransfer.files)
+            .filter(f => f.type.startsWith('image/'))
+            .slice(0, 5);
+        setFiles(dropped);
+    };
+
+    async function handleFileUpload(portfolioId) {
+        try {
+            const fd = new FormData();
+            files.forEach(f => fd.append('images', f));
+            fd.append('portfolio_id', portfolioId);
+            await portfolioImagesApi.upload(fd);
+            toast.success('Image uploaded successfully!');
+            setFiles([]);
+            if (inputRef.current) inputRef.current.value = '';
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to upload image');
+        }
+    }
+    /// Fetch Images end
 
     const fetchUsers = async () => {
         try {
@@ -93,7 +127,8 @@ export default function PortfoliosPage() {
             if (editingId) {
                 await portfoliosApi.update(editingId, formData);
             } else {
-                await portfoliosApi.create(formData);
+                const response = await portfoliosApi.create(formData);
+                await handleFileUpload(response.data.id);
             }
             setShowForm(false);
             setEditingId(null);
@@ -102,60 +137,6 @@ export default function PortfoliosPage() {
             toast.success('Portfolio saved successfully');
         } catch {
             toast.error('Failed to save portfolio');
-        }
-    };
-
-    // Upload Handlers
-    const handleFileSelect = (files) => {
-        const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
-        if (validFiles.length + selectedFiles.length > 5) {
-            toast.error('You can upload maximum 5 images per portfolio');
-            return;
-        }
-        setSelectedFiles(prev => [...prev, ...validFiles]);
-        const newPreviews = validFiles.map(file => URL.createObjectURL(file));
-        setPreviews(prev => [...prev, ...newPreviews]);
-    };
-
-    const handleFileInputChange = (e) => {
-        if (e.target.files) {
-            handleFileSelect(e.target.files);
-        }
-    };
-
-    const removeFile = (index) => {
-        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-        setPreviews(prev => prev.filter((_, i) => i !== index));
-    };
-
-    const handleUploadImages = async () => {
-        if (!selectedPortfolioId) {
-            toast.error('Select a portfolio first');
-            return;
-        }
-        if (selectedFiles.length === 0) {
-            toast.error('Select images to upload');
-            return;
-        }
-
-        setUploading(true);
-        try {
-            const formDataObj = new FormData();
-            selectedFiles.forEach(file => formDataObj.append('images', file));
-            formDataObj.append('portfolio_id', selectedPortfolioId);
-
-            await portfolioImagesApi.upload(formDataObj);
-
-            toast.success('Images uploaded successfully');
-            setSelectedFiles([]);
-            setPreviews([]);
-            setShowUploadForm(false);
-            setSelectedPortfolioId(null);
-            fetchData();
-        } catch {
-            toast.error('Failed to upload images');
-        } finally {
-            setUploading(false);
         }
     };
 
@@ -170,6 +151,7 @@ export default function PortfoliosPage() {
             label: 'Images',
             render: (row) => (
                 <div className="flex gap-2 flex-wrap">
+                    {row}
                     {images
                         .filter(img => img?.portfolio_id === row?.id)
                         .map(img => (
@@ -183,6 +165,18 @@ export default function PortfoliosPage() {
                 </div>
             )
         },
+        {
+            key: 'id',
+            label: 'id',
+            render: (row) => (
+                <button
+                    onClick={() => router.push(`/portfolio/${row}/images`)}
+                    className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors cursor-pointer"
+                >
+                    Preview Images
+                </button>
+            )
+        }
     ];
 
     if (loading) return <div>Loading...</div>;
@@ -194,19 +188,6 @@ export default function PortfoliosPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Portfolios</h1>
                 <div className="flex gap-3">
-                    <button
-                        onClick={() => {
-                            setShowUploadForm(true);
-                            setShowForm(false);
-                            setSelectedPortfolioId(null);
-                            setSelectedFiles([]);
-                            setPreviews([]);
-                        }}
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-2"
-                    >
-                        <UploadCloud className="w-4 h-4" />
-                        Upload Images
-                    </button>
                     <button
                         onClick={() => {
                             setShowForm(true);
@@ -230,7 +211,7 @@ export default function PortfoliosPage() {
                     <form onSubmit={handleSubmitPortfolio}>
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Description
+                                User <span className="text-red-500">*</span>
                             </label>
                             <select name="user_id" value={formData.user_id} onChange={(e) => setFormData({ ...formData, user_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Select User</option>
@@ -250,7 +231,7 @@ export default function PortfoliosPage() {
                         />
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Description
+                                Description <span className="text-red-500">*</span>
                             </label>
                             <textarea
                                 name="description"
@@ -259,6 +240,54 @@ export default function PortfoliosPage() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 rows="4"
                             />
+                        </div>
+                        <div className="mb-4">
+                            <div className="mb-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+                                <p className="text-md font-bold mb-4">Upload Portfolio Image</p>
+                                <div className="space-y-4">
+                                    {/* Upload box */}
+                                    <div
+                                        onClick={() => inputRef.current.click()}
+                                        onDrop={onDrop}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer hover:border-blue-400"
+                                    >
+                                        <UploadCloud className="mx-auto w-8 h-8 text-blue-600" />
+                                        <p className="text-sm mt-2">Click or drag (max 5 images)</p>
+
+                                        <input
+                                            ref={inputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            onChange={onSelectFiles}
+                                            className="hidden"
+                                        />
+                                    </div>
+
+                                    {/* Preview grid */}
+                                    {files.length > 0 && (
+                                        <div className="grid grid-cols-5 gap-3">
+                                            {files.map((file, i) => (
+                                                <div key={i} className="relative">
+                                                    <img
+                                                        src={URL.createObjectURL(file)}
+                                                        className="h-50 w-full object-cover rounded-lg"
+                                                    />
+                                                    <button
+                                                        onClick={() => removeFileOne(i)}
+                                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                </div>
+
+                            </div>
                         </div>
                         <div className="flex gap-4">
                             <button
@@ -280,76 +309,6 @@ export default function PortfoliosPage() {
                             </button>
                         </div>
                     </form>
-                </div>
-            )}
-
-            {/* Upload Form */}
-            {showUploadForm && (
-                <div className="mb-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-                    <h2 className="text-xl font-bold mb-4">Upload Images</h2>
-
-                    {/* Portfolio select */}
-                    <SelectField
-                        label="Select Portfolio"
-                        name="portfolio_id"
-                        value={selectedPortfolioId || ''}
-                        onChange={(e) => setSelectedPortfolioId(e.target.value)}
-                        options={portfolios.map(p => ({ value: p.id, label: p.name }))}
-                        required
-                    />
-
-                    {/* File input */}
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleFileInputChange}
-                        className="hidden"
-                    />
-                    <div
-                        className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 mt-4"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <p className="text-gray-500">Click or drag images here (Max 5)</p>
-                    </div>
-
-                    {/* Preview */}
-                    <div className="flex gap-2 mt-4 flex-wrap">
-                        {previews.map((src, idx) => (
-                            <div key={idx} className="relative">
-                                <img src={src} alt="preview" className="w-24 h-24 object-cover rounded" />
-                                <button
-                                    onClick={() => removeFile(idx)}
-                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Upload / Cancel buttons */}
-                    <div className="mt-4 flex gap-2">
-                        <button
-                            onClick={handleUploadImages}
-                            disabled={uploading || selectedFiles.length === 0 || !selectedPortfolioId}
-                            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
-                        >
-                            {uploading ? 'Uploading...' : 'Upload Images'}
-                        </button>
-                        <button
-                            onClick={() => {
-                                setShowUploadForm(false);
-                                setSelectedFiles([]);
-                                setPreviews([]);
-                                setSelectedPortfolioId(null);
-                            }}
-                            className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                        >
-                            Cancel
-                        </button>
-                    </div>
                 </div>
             )}
 

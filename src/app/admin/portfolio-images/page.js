@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import Table from '../../../components/Table';
+import { UploadCloud, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import FormInput from '../../../components/FormInput';
 import SelectField from '../../../components/SelectField';
+import Table from '../../../components/Table';
 import { portfolioImagesApi } from '../../../services/portfolioImagesApi';
 import { portfoliosApi } from '../../../services/portfoliosApi';
-import { UploadCloud, X } from 'lucide-react';
-import { toast } from 'sonner';
 
 export default function PortfolioImagesPage() {
     const [images, setImages] = useState([]);
@@ -20,7 +20,7 @@ export default function PortfolioImagesPage() {
         portfolio_id: '',
         image_id: ''
     });
-    
+
     // Upload states
     const [selectedFile, setSelectedFile] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -114,7 +114,7 @@ export default function PortfolioImagesPage() {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleFileSelect(e.dataTransfer.files[0]);
         }
@@ -149,14 +149,13 @@ export default function PortfolioImagesPage() {
         setUploadProgress(0);
 
         try {
-            
+
             const uploadFormData = new FormData();
             uploadFormData.append('images', selectedFile);
             uploadFormData.append('portfolio_id', formData.portfolio_id);
-console.log(uploadFormData);
 
             const response = await portfolioImagesApi.upload(uploadFormData);
-            
+
             toast.success('Image uploaded successfully!');
             setShowUploadForm(false);
             setSelectedFile(null);
